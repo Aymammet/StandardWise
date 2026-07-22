@@ -20,6 +20,11 @@
 		A10000000000000000000012 /* QuestionFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* QuestionFeedback.swift */; };
 		A10000000000000000000013 /* StandardWiseSampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* StandardWiseSampleData.swift */; };
 		A10000000000000000000014 /* QuestionBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* QuestionBank.swift */; };
+		A10000000000000000000015 /* AppSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* AppSession.swift */; };
+		A10000000000000000000016 /* LocalAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* LocalAuthService.swift */; };
+		A10000000000000000000017 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* LoginView.swift */; };
+		A10000000000000000000018 /* AdminDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AdminDashboardView.swift */; };
+		A10000000000000000000019 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* RootView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +44,11 @@
 		A20000000000000000000013 /* QuestionFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionFeedback.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* StandardWiseSampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardWiseSampleData.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* QuestionBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionBank.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* AppSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSession.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* LocalAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAuthService.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* AdminDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,18 +63,21 @@
 		};
 		A40000000000000000000001 /* StandardWise */ = {
 			isa = PBXGroup;
-			children = (A20000000000000000000001 /* StandardWiseApp.swift */, A40000000000000000000006 /* Core */, A40000000000000000000010 /* Features */, A20000000000000000000006 /* Assets.xcassets */, A40000000000000000000004 /* Preview Content */);
+			children = (A20000000000000000000001 /* StandardWiseApp.swift */, A20000000000000000000020 /* RootView.swift */, A40000000000000000000006 /* Core */, A40000000000000000000010 /* Features */, A20000000000000000000006 /* Assets.xcassets */, A40000000000000000000004 /* Preview Content */);
 			path = StandardWise;
 			sourceTree = "<group>";
 		};
 		A40000000000000000000004 /* Preview Content */ = {isa = PBXGroup; children = (A20000000000000000000007 /* Preview Assets.xcassets */); path = "Preview Content"; sourceTree = "<group>"; };
 		A40000000000000000000005 /* Products */ = {isa = PBXGroup; children = (A20000000000000000000000 /* StandardWise.app */); name = Products; sourceTree = "<group>"; };
-		A40000000000000000000006 /* Core */ = {isa = PBXGroup; children = (A40000000000000000000007 /* Models */, A40000000000000000000008 /* Services */, A40000000000000000000009 /* DesignSystem */); path = Core; sourceTree = "<group>"; };
+		A40000000000000000000006 /* Core */ = {isa = PBXGroup; children = (A40000000000000000000007 /* Models */, A40000000000000000000008 /* Services */, A40000000000000000000009 /* DesignSystem */, A40000000000000000000012 /* Session */); path = Core; sourceTree = "<group>"; };
 		A40000000000000000000007 /* Models */ = {isa = PBXGroup; children = (A20000000000000000000010 /* AcademicSubject.swift */, A20000000000000000000012 /* AnswerAttempt.swift */, A20000000000000000000011 /* GradeLevel.swift */, A20000000000000000000003 /* LearningStandard.swift */, A20000000000000000000004 /* Question.swift */, A20000000000000000000013 /* QuestionFeedback.swift */, A20000000000000000000014 /* StandardWiseSampleData.swift */, A20000000000000000000009 /* StandardWiseUser.swift */); path = Models; sourceTree = "<group>"; };
-		A40000000000000000000008 /* Services */ = {isa = PBXGroup; children = (A20000000000000000000005 /* ProblemGenerator.swift */, A20000000000000000000015 /* QuestionBank.swift */); path = Services; sourceTree = "<group>"; };
+		A40000000000000000000008 /* Services */ = {isa = PBXGroup; children = (A20000000000000000000017 /* LocalAuthService.swift */, A20000000000000000000005 /* ProblemGenerator.swift */, A20000000000000000000015 /* QuestionBank.swift */); path = Services; sourceTree = "<group>"; };
 		A40000000000000000000009 /* DesignSystem */ = {isa = PBXGroup; children = (A20000000000000000000008 /* StandardWiseTheme.swift */); path = DesignSystem; sourceTree = "<group>"; };
-		A40000000000000000000010 /* Features */ = {isa = PBXGroup; children = (A40000000000000000000011 /* Practice */); path = Features; sourceTree = "<group>"; };
+		A40000000000000000000010 /* Features */ = {isa = PBXGroup; children = (A40000000000000000000013 /* Admin */, A40000000000000000000014 /* Auth */, A40000000000000000000011 /* Practice */); path = Features; sourceTree = "<group>"; };
 		A40000000000000000000011 /* Practice */ = {isa = PBXGroup; children = (A20000000000000000000002 /* PracticeView.swift */); path = Practice; sourceTree = "<group>"; };
+		A40000000000000000000012 /* Session */ = {isa = PBXGroup; children = (A20000000000000000000016 /* AppSession.swift */); path = Session; sourceTree = "<group>"; };
+		A40000000000000000000013 /* Admin */ = {isa = PBXGroup; children = (A20000000000000000000019 /* AdminDashboardView.swift */); path = Admin; sourceTree = "<group>"; };
+		A40000000000000000000014 /* Auth */ = {isa = PBXGroup; children = (A20000000000000000000018 /* LoginView.swift */); path = Auth; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -103,7 +116,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A30000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001 /* StandardWiseApp.swift in Sources */, A10000000000000000000002 /* PracticeView.swift in Sources */, A10000000000000000000003 /* LearningStandard.swift in Sources */, A10000000000000000000004 /* Question.swift in Sources */, A10000000000000000000005 /* ProblemGenerator.swift in Sources */, A10000000000000000000007 /* StandardWiseTheme.swift in Sources */, A10000000000000000000008 /* StandardWiseUser.swift in Sources */, A10000000000000000000009 /* AcademicSubject.swift in Sources */, A10000000000000000000010 /* GradeLevel.swift in Sources */, A10000000000000000000011 /* AnswerAttempt.swift in Sources */, A10000000000000000000012 /* QuestionFeedback.swift in Sources */, A10000000000000000000013 /* StandardWiseSampleData.swift in Sources */, A10000000000000000000014 /* QuestionBank.swift in Sources */); runOnlyForDeploymentPostprocessing = 0; };
+		A30000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001 /* StandardWiseApp.swift in Sources */, A10000000000000000000002 /* PracticeView.swift in Sources */, A10000000000000000000003 /* LearningStandard.swift in Sources */, A10000000000000000000004 /* Question.swift in Sources */, A10000000000000000000005 /* ProblemGenerator.swift in Sources */, A10000000000000000000007 /* StandardWiseTheme.swift in Sources */, A10000000000000000000008 /* StandardWiseUser.swift in Sources */, A10000000000000000000009 /* AcademicSubject.swift in Sources */, A10000000000000000000010 /* GradeLevel.swift in Sources */, A10000000000000000000011 /* AnswerAttempt.swift in Sources */, A10000000000000000000012 /* QuestionFeedback.swift in Sources */, A10000000000000000000013 /* StandardWiseSampleData.swift in Sources */, A10000000000000000000014 /* QuestionBank.swift in Sources */, A10000000000000000000015 /* AppSession.swift in Sources */, A10000000000000000000016 /* LocalAuthService.swift in Sources */, A10000000000000000000017 /* LoginView.swift in Sources */, A10000000000000000000018 /* AdminDashboardView.swift in Sources */, A10000000000000000000019 /* RootView.swift in Sources */); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */

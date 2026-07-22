@@ -85,10 +85,18 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Support multiple choice answer selection.
 - Support typed input answers.
 - Prevent answer checking until the user selects or enters an answer.
+- Reordered the practice dropdowns to Subject, Grade, Standard.
+- Disabled Generate when no standard is available.
+- Added a no-standards message for subject and grade combinations that do not have standards yet.
+- Added selectable multiple-choice answer buttons.
+- Added a typed-answer field for input-answer questions.
+- Added a Check Answer button that stays disabled until the user selects or enters an answer.
+- Reset answer state when a new question is generated.
+- Verified the app builds successfully after the practice-flow update.
 
 **Done when:** a regular user can choose a subject, grade, and standard, generate a matching question, answer it, and check the result.
 
-## 6. Implement Answer Checking and Feedback UI `[ ]`
+## 6. Implement Answer Checking and Feedback UI `[x]`
 
 - Add a Check Answer button below each question.
 - Highlight a correct selected answer in green.
@@ -98,10 +106,19 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Show text feedback in addition to color feedback.
 - Show the explanation only after the user checks an answer.
 - Reset selected answer, typed answer, feedback, and explanation when a new question is generated.
+- Added real answer checking for multiple-choice and input-answer questions.
+- Added accepted alternate answer comparison for typed answers.
+- Normalized typed answers before comparison.
+- Highlighted the correct multiple-choice answer in green after checking.
+- Highlighted the user's incorrect multiple-choice answer in red after checking.
+- Added Correct and Incorrect text feedback with icons.
+- Show the explanation only after the answer is checked.
+- Disabled answer editing after checking.
+- Verified the app builds successfully after the answer-checking update.
 
 **Done when:** students receive clear correct or incorrect feedback for both multiple choice and input-answer questions.
 
-## 7. Add Login and Session Routing `[ ]`
+## 7. Add Login and Session Routing `[x]`
 
 - Create a Login screen with email and password fields.
 - Add a Login button with loading and error states.
@@ -110,16 +127,29 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Send regular users to the Main Practice screen.
 - Use local sample users first while the database/auth choice is still open.
 - Keep user-facing error messages simple and friendly.
+- Added a local login screen for email and password.
+- Added sample admin and regular-user accounts.
+- Added app session state for login, logout, loading, and login errors.
+- Added root routing so admins open the Admin Dashboard and regular users open the Practice screen.
+- Added Logout buttons for admin and regular-user flows.
+- Added an early Admin Dashboard placeholder with the planned admin areas.
+- Verified the app builds successfully after the login and routing update.
 
 **Done when:** logging in as an admin or regular user opens the correct app experience.
 
-## 8. Build Admin Dashboard `[ ]`
+## 8. Build Admin Dashboard `[x]`
 
 - Create an admin-only dashboard screen.
 - Add admin navigation for Questions, Standards, Users, Feedback, and Analytics.
 - Show overview cards for total questions, total users, recent feedback, most practiced standards, and high-miss questions.
 - Keep admin screens dense, clear, and easy to scan.
 - Prevent regular users from opening admin pages.
+- Replaced the placeholder admin list with a dashboard layout.
+- Added overview cards for local questions, standards, users, and input-answer questions.
+- Added admin navigation rows for Questions, Standards, Users, Feedback, and Analytics.
+- Added placeholder destination pages for each admin area so navigation is ready for the next steps.
+- Kept admin access behind role-based login routing.
+- Verified the app builds successfully after the dashboard update.
 
 **Done when:** admin users have a central dashboard with navigation to all management areas.
 
