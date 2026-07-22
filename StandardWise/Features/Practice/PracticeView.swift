@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ContentView: View {
+struct PracticeView: View {
     @State private var selectedGrade = "6th"
     @State private var selectedSubject = "Math"
     @State private var selectedStandardCode = "6.RP.1"
@@ -69,7 +69,7 @@ struct ContentView: View {
                     }
                     .padding()
                     .background(.thinMaterial)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
 
                     if let problem = currentProblem {
                         ProblemCard(problem: problem)
@@ -122,8 +122,12 @@ private struct ProblemCard: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+        .shadow(
+            color: StandardWiseTheme.cardShadowColor,
+            radius: StandardWiseTheme.cardShadowRadius,
+            y: StandardWiseTheme.cardShadowYOffset
+        )
     }
 }
 
@@ -138,6 +142,6 @@ private struct EmptyProblemView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
     }
 }

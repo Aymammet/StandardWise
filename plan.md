@@ -1,1 +1,244 @@
+# StandardWise Development Plan
 
+This plan reflects the active Xcode target as of July 2026. StandardWise is a SwiftUI app for standards-based student practice, with separate regular-user and admin experiences planned. The current app is an early local prototype with grade, subject, and standard dropdowns plus sample generated questions.
+
+## Status Legend
+
+- `[x]` Complete locally
+- `[~]` Partially complete
+- `[ ]` Not started
+
+## 1. Stabilize Current SwiftUI Prototype `[x]`
+
+- Keep the active `StandardWise` Xcode target clean and buildable.
+- Preserve the current grade, subject, and standard selection flow.
+- Keep dropdown-style controls for Grade, Subject, and Standard.
+- Continue using the existing `Models` and `Services` folders until the app needs a larger feature-based structure.
+- Make sure local Xcode user-state files stay out of Git.
+- Keep `plan.md` as the source of truth for upcoming features and build order.
+- Verified the app builds successfully with the active `StandardWise` scheme.
+
+**Done when:** the app builds cleanly, the current prototype works from Xcode, and every project file has a clear purpose.
+
+## 2. Define Core App Architecture `[x]`
+
+- Create a clear app structure for shared models, services, session state, and feature views.
+- Decide whether to keep the simple folder layout or move toward `Core` and `Features` folders as the app grows.
+- Separate regular-user practice screens from admin management screens.
+- Add shared design values for colors, spacing, card styling, and button styling.
+- Keep business logic out of SwiftUI views where possible.
+- Created `Core/Models`, `Core/Services`, `Core/DesignSystem`, and `Features/Practice`.
+- Moved the current practice screen into `Features/Practice/PracticeView.swift`.
+- Added `StandardWiseTheme` for shared card styling values.
+- Updated the Xcode project references to match the new source tree.
+- Verified the app builds successfully after the architecture update.
+
+**Done when:** the project has a predictable source tree and each major app area has a clear place to live.
+
+## 3. Build Core Data Models `[~]`
+
+- Expand the current `OhioStandard` model into a full Standard model with subject, grade, code, name, and description.
+- Replace the current simple `PracticeProblem` model with a full Question model.
+- Support multiple choice questions with A, B, C, and D choices.
+- Support input-answer questions where students type an answer.
+- Add models for User, Subject, Grade, Standard, Question, AnswerAttempt, and Feedback.
+- Add role support for admin and regular users.
+- Add fields for created date, updated date, active status, and created-by admin where needed.
+
+**Done when:** app data can represent users, standards, questions, answers, attempts, and feedback without relying on placeholder-only structures.
+
+## 4. Replace Hard-Coded Generator With Question Data `[ ]`
+
+- Replace `ProblemGenerator` switch logic with structured sample question data.
+- Filter available questions by subject, grade, and standard.
+- Randomly or sequentially select a question from the matching question list.
+- Show a friendly empty state when no questions exist for the selected standard.
+- Keep local sample data first, before connecting a real database.
+
+**Done when:** the Generate Question button loads a real question object from sample data instead of creating one through hard-coded switch cases.
+
+## 5. Complete Regular User Practice Flow `[~]`
+
+- Show the main practice screen after regular-user login.
+- Present dropdowns in this order: Subject, Grade, Standard.
+- Include subjects such as Math, ELA, Science, and future subjects.
+- Include grades such as 6th, 7th, 8th, 9th, and future grades.
+- Show standard names with code and title, for example `6.RP.1: Understand ratio concepts`.
+- Add a clear Generate Question button.
+- Display the selected question below the dropdowns.
+- Support multiple choice answer selection.
+- Support typed input answers.
+- Prevent answer checking until the user selects or enters an answer.
+
+**Done when:** a regular user can choose a subject, grade, and standard, generate a matching question, answer it, and check the result.
+
+## 6. Implement Answer Checking and Feedback UI `[ ]`
+
+- Add a Check Answer button below each question.
+- Highlight a correct selected answer in green.
+- Highlight an incorrect selected answer in red.
+- Highlight the correct answer in green when the user is wrong.
+- For input answers, compare typed answer against the correct answer and accepted alternate answers.
+- Show text feedback in addition to color feedback.
+- Show the explanation only after the user checks an answer.
+- Reset selected answer, typed answer, feedback, and explanation when a new question is generated.
+
+**Done when:** students receive clear correct or incorrect feedback for both multiple choice and input-answer questions.
+
+## 7. Add Login and Session Routing `[ ]`
+
+- Create a Login screen with email and password fields.
+- Add a Login button with loading and error states.
+- Add role-based routing after login.
+- Send admin users to the Admin Dashboard.
+- Send regular users to the Main Practice screen.
+- Use local sample users first while the database/auth choice is still open.
+- Keep user-facing error messages simple and friendly.
+
+**Done when:** logging in as an admin or regular user opens the correct app experience.
+
+## 8. Build Admin Dashboard `[ ]`
+
+- Create an admin-only dashboard screen.
+- Add admin navigation for Questions, Standards, Users, Feedback, and Analytics.
+- Show overview cards for total questions, total users, recent feedback, most practiced standards, and high-miss questions.
+- Keep admin screens dense, clear, and easy to scan.
+- Prevent regular users from opening admin pages.
+
+**Done when:** admin users have a central dashboard with navigation to all management areas.
+
+## 9. Build Admin Question Management `[ ]`
+
+- Create a question list page.
+- Add search and filters for subject, grade, standard, and question type.
+- Add an Add Question button.
+- Add an Edit button for each question.
+- Add delete or archive behavior with confirmation.
+- Build a question form with subject, grade, standard, prompt, type, choices, correct answer, alternate answers, and explanation.
+- Validate required fields before saving.
+- Save locally first, then connect to the database later.
+
+**Done when:** admins can create, edit, archive, and review practice questions from inside the app.
+
+## 10. Build Admin Standards Management `[ ]`
+
+- Create a standards management page.
+- Let admins view subjects, grades, and standards.
+- Add an Add Standard button.
+- Add edit behavior for existing standards.
+- Store standard code, standard name, subject, grade, and full description.
+- Make sure the regular-user Standard dropdown uses the same standards data.
+
+**Done when:** admins can manage the standards that appear in the regular-user dropdowns.
+
+## 11. Build Feedback Flow `[ ]`
+
+- Add a Send Feedback button below generated questions.
+- Let regular users submit a short message about a question.
+- Attach feedback to the related question and user.
+- Create an admin Feedback page.
+- Show feedback status as New, Reviewed, or Resolved.
+- Let admins update feedback status.
+
+**Done when:** students can report confusing or incorrect questions, and admins can review those reports.
+
+## 12. Track Users and Answer Attempts `[ ]`
+
+- Save each answer attempt with user, question, selected or typed answer, correctness, and date.
+- Track attempts by subject, grade, standard, and question.
+- Create an Admin Users page.
+- Show each user's role, last active date, questions attempted, and accuracy summary.
+- Prepare this data for analytics screens.
+
+**Done when:** the app records student practice activity and admins can review basic user progress.
+
+## 13. Add Database and Persistence `[ ]`
+
+- Choose the database approach for the app.
+- Move users, subjects, grades, standards, questions, attempts, and feedback into persistent storage.
+- Connect Generate Question to database questions.
+- Connect admin question creation and editing to database records.
+- Connect feedback submission to database records.
+- Add loading, empty, retry, and error states around database reads and writes.
+
+**Done when:** app data survives app restarts and admin-created questions become available to regular users.
+
+## 14. Build Admin Analytics `[ ]`
+
+- Show attempts by subject.
+- Show attempts by grade.
+- Show attempts by standard.
+- Show correct vs incorrect answer rates.
+- Highlight most missed questions.
+- Highlight most practiced standards.
+- Show user-level accuracy summaries.
+- Start with simple lists and summary cards before adding charts.
+
+**Done when:** admins can understand student practice patterns and identify weak standards or problematic questions.
+
+## 15. Polish UI and UX `[ ]`
+
+- Keep the regular-user screen simple, focused, and student-friendly.
+- Use readable font sizes and clear spacing.
+- Use cards for question display and admin list items.
+- Use consistent button styles.
+- Add clear empty states when no questions or feedback exist.
+- Add clear loading states when data is being fetched.
+- Add friendly error messages.
+- Make dropdown labels and answer controls easy to understand.
+- Make the app work well on different screen sizes.
+
+**Done when:** both regular-user and admin experiences feel clean, understandable, and ready for real use.
+
+## 16. Accessibility and Answer Clarity `[ ]`
+
+- Make every button, dropdown, and text field clearly labeled.
+- Do not rely only on color for correctness feedback.
+- Add text feedback for correct and incorrect answers.
+- Use placeholders that explain what users should enter.
+- Ensure tap targets are comfortable.
+- Keep explanation text readable.
+
+**Done when:** users can understand and use the practice flow even without relying only on color or visual layout.
+
+## 17. Testing and Quality Checks `[ ]`
+
+- Test login as admin and regular user.
+- Test subject, grade, and standard filtering.
+- Test question generation.
+- Test multiple choice answer checking.
+- Test typed input answer checking.
+- Test empty states when no questions exist.
+- Test admin add and edit question flow.
+- Test feedback submission and admin review.
+- Test database save and load behavior once persistence is added.
+- Run Xcode builds before committing major changes.
+
+**Done when:** the main student and admin workflows can be tested reliably after each major build step.
+
+## 18. Git and Release Workflow `[~]`
+
+- Keep the local repo connected to `git@github.com:Aymammet/StandardWise.git`.
+- Commit each meaningful feature step with a clear message.
+- Push completed work to GitHub.
+- Avoid committing local Xcode user-state files.
+- Use `plan.md` to decide the next feature before coding.
+
+**Done when:** the GitHub repo always reflects the latest stable local work.
+
+## Open Decisions
+
+- Which database should StandardWise use?
+- Should login use Firebase, Supabase, local school accounts, or another auth system?
+- Will users create their own accounts, or will admin users create accounts for them?
+- Should the app require internet connection?
+- Should questions be random, sequential, or adaptive based on past answers?
+- Should students see progress history?
+- Should admins be able to import questions from CSV, spreadsheet, or document files?
+- Should questions support images, diagrams, tables, or reading passages?
+- Should ELA passages connect to multiple questions?
+- Should there be difficulty levels for questions?
+
+## Immediate Next Step
+
+- Start with milestone 4: replace the current hard-coded `ProblemGenerator` with structured local question data that supports both multiple choice and input-answer questions.

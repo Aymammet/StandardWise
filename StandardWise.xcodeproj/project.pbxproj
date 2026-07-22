@@ -7,22 +7,24 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* StandardWiseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* StandardWiseApp.swift */; };
-		A10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* ContentView.swift */; };
+		A10000000000000000000002 /* PracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* PracticeView.swift */; };
 		A10000000000000000000003 /* OhioStandard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* OhioStandard.swift */; };
 		A10000000000000000000004 /* PracticeProblem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* PracticeProblem.swift */; };
 		A10000000000000000000005 /* ProblemGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* ProblemGenerator.swift */; };
 		A10000000000000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* Assets.xcassets */; };
+		A10000000000000000000007 /* StandardWiseTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* StandardWiseTheme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A20000000000000000000000 /* StandardWise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StandardWise.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000001 /* StandardWiseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardWiseApp.swift; sourceTree = "<group>"; };
-		A20000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* PracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeView.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* OhioStandard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OhioStandard.swift; sourceTree = "<group>"; };
 		A20000000000000000000004 /* PracticeProblem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeProblem.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* ProblemGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProblemGenerator.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20000000000000000000007 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		A20000000000000000000008 /* StandardWiseTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandardWiseTheme.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,14 +39,18 @@
 		};
 		A40000000000000000000001 /* StandardWise */ = {
 			isa = PBXGroup;
-			children = (A20000000000000000000001 /* StandardWiseApp.swift */, A20000000000000000000002 /* ContentView.swift */, A40000000000000000000002 /* Models */, A40000000000000000000003 /* Services */, A20000000000000000000006 /* Assets.xcassets */, A40000000000000000000004 /* Preview Content */);
+			children = (A20000000000000000000001 /* StandardWiseApp.swift */, A40000000000000000000006 /* Core */, A40000000000000000000010 /* Features */, A20000000000000000000006 /* Assets.xcassets */, A40000000000000000000004 /* Preview Content */);
 			path = StandardWise;
 			sourceTree = "<group>";
 		};
-		A40000000000000000000002 /* Models */ = {isa = PBXGroup; children = (A20000000000000000000003 /* OhioStandard.swift */, A20000000000000000000004 /* PracticeProblem.swift */); path = Models; sourceTree = "<group>"; };
-		A40000000000000000000003 /* Services */ = {isa = PBXGroup; children = (A20000000000000000000005 /* ProblemGenerator.swift */); path = Services; sourceTree = "<group>"; };
 		A40000000000000000000004 /* Preview Content */ = {isa = PBXGroup; children = (A20000000000000000000007 /* Preview Assets.xcassets */); path = "Preview Content"; sourceTree = "<group>"; };
 		A40000000000000000000005 /* Products */ = {isa = PBXGroup; children = (A20000000000000000000000 /* StandardWise.app */); name = Products; sourceTree = "<group>"; };
+		A40000000000000000000006 /* Core */ = {isa = PBXGroup; children = (A40000000000000000000007 /* Models */, A40000000000000000000008 /* Services */, A40000000000000000000009 /* DesignSystem */); path = Core; sourceTree = "<group>"; };
+		A40000000000000000000007 /* Models */ = {isa = PBXGroup; children = (A20000000000000000000003 /* OhioStandard.swift */, A20000000000000000000004 /* PracticeProblem.swift */); path = Models; sourceTree = "<group>"; };
+		A40000000000000000000008 /* Services */ = {isa = PBXGroup; children = (A20000000000000000000005 /* ProblemGenerator.swift */); path = Services; sourceTree = "<group>"; };
+		A40000000000000000000009 /* DesignSystem */ = {isa = PBXGroup; children = (A20000000000000000000008 /* StandardWiseTheme.swift */); path = DesignSystem; sourceTree = "<group>"; };
+		A40000000000000000000010 /* Features */ = {isa = PBXGroup; children = (A40000000000000000000011 /* Practice */); path = Features; sourceTree = "<group>"; };
+		A40000000000000000000011 /* Practice */ = {isa = PBXGroup; children = (A20000000000000000000002 /* PracticeView.swift */); path = Practice; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -83,7 +89,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A30000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001 /* StandardWiseApp.swift in Sources */, A10000000000000000000002 /* ContentView.swift in Sources */, A10000000000000000000003 /* OhioStandard.swift in Sources */, A10000000000000000000004 /* PracticeProblem.swift in Sources */, A10000000000000000000005 /* ProblemGenerator.swift in Sources */); runOnlyForDeploymentPostprocessing = 0; };
+		A30000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001 /* StandardWiseApp.swift in Sources */, A10000000000000000000002 /* PracticeView.swift in Sources */, A10000000000000000000003 /* OhioStandard.swift in Sources */, A10000000000000000000004 /* PracticeProblem.swift in Sources */, A10000000000000000000005 /* ProblemGenerator.swift in Sources */, A10000000000000000000007 /* StandardWiseTheme.swift in Sources */); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
