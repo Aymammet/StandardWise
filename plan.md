@@ -35,7 +35,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the project has a predictable source tree and each major app area has a clear place to live.
 
-## 3. Build Core Data Models `[~]`
+## 3. Build Core Data Models `[x]`
 
 - Expand the current `OhioStandard` model into a full Standard model with subject, grade, code, name, and description.
 - Replace the current simple `PracticeProblem` model with a full Question model.
@@ -44,16 +44,32 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Add models for User, Subject, Grade, Standard, Question, AnswerAttempt, and Feedback.
 - Add role support for admin and regular users.
 - Add fields for created date, updated date, active status, and created-by admin where needed.
+- Added `StandardWiseUser` and `UserRole`.
+- Added `AcademicSubject` and `GradeLevel`.
+- Replaced `OhioStandard` with `LearningStandard`.
+- Replaced `PracticeProblem` with `Question`, `QuestionType`, and `AnswerChoice`.
+- Added `AnswerAttempt`.
+- Added `QuestionFeedback` and `FeedbackStatus`.
+- Added `StandardWiseSampleData` for stable local subject and grade IDs.
+- Updated the current practice flow to compile against `LearningStandard` and `Question`.
+- Verified the app builds successfully with the new model layer.
 
 **Done when:** app data can represent users, standards, questions, answers, attempts, and feedback without relying on placeholder-only structures.
 
-## 4. Replace Hard-Coded Generator With Question Data `[ ]`
+## 4. Replace Hard-Coded Generator With Question Data `[x]`
 
 - Replace `ProblemGenerator` switch logic with structured sample question data.
 - Filter available questions by subject, grade, and standard.
 - Randomly or sequentially select a question from the matching question list.
 - Show a friendly empty state when no questions exist for the selected standard.
 - Keep local sample data first, before connecting a real database.
+- Added `QuestionBank` as a structured local question source.
+- Added sample input-answer and multiple-choice questions.
+- Updated `ProblemGenerator` to select from `QuestionBank` instead of using hard-coded switch branches.
+- Updated the practice screen to request questions by subject, grade, and standard.
+- Added a friendly no-question message when no local question exists for the selected standard.
+- Display multiple-choice answer choices on generated question cards.
+- Verified the app builds successfully with the local question bank.
 
 **Done when:** the Generate Question button loads a real question object from sample data instead of creating one through hard-coded switch cases.
 

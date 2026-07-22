@@ -4,15 +4,16 @@ struct PracticeView: View {
     @State private var selectedGrade = "6th"
     @State private var selectedSubject = "Math"
     @State private var selectedStandardCode = "6.RP.1"
-    @State private var currentProblem: PracticeProblem?
+    @State private var currentProblem: Question?
+    @State private var emptyMessage = "Choose a grade, subject, and standard, then tap Generate."
 
-    private let grades = ["6th", "7th", "8th"]
-    private let subjects = ["Math", "ELA"]
-    private let standards = OhioStandard.sampleStandards
+    private let grades = StandardWiseSampleData.grades.map(\.name)
+    private let subjects = StandardWiseSampleData.subjects.map(\.name)
+    private let standards = LearningStandard.sampleStandards
 
-    private var filteredStandards: [OhioStandard] {
+    private var filteredStandards: [LearningStandard] {
         standards.filter { standard in
-            standard.grade == selectedGrade && standard.subject == selectedSubject
+            standard.gradeName == selectedGrade && standard.subjectName == selectedSubject
         }
     }
 
@@ -34,6 +35,7 @@ struct PracticeView: View {
                         .onChange(of: selectedGrade) { _, _ in
                             selectedStandardCode = filteredStandards.first?.code ?? ""
                             currentProblem = nil
+                            emptyMessage = "Choose a grade, subject, and standard, then tap Generate."
                         }
 
                         Picker("Subject", selection: $selectedSubject) {
@@ -45,11 +47,12 @@ struct PracticeView: View {
                         .onChange(of: selectedSubject) { _, _ in
                             selectedStandardCode = filteredStandards.first?.code ?? ""
                             currentProblem = nil
+                            emptyMessage = "Choose a grade, subject, and standard, then tap Generate."
                         }
 
                         Picker("Standard", selection: $selectedStandardCode) {
                             ForEach(filteredStandards) { standard in
-                                Text("\(standard.code): \(standard.shortDescription)")
+                                Text(standard.displayName)
                                     .tag(standard.code)
                             }
                         }
@@ -58,14 +61,17 @@ struct PracticeView: View {
                         Button {
                             currentProblem = ProblemGenerator.generate(
                                 subject: selectedSubject,
+                                grade: selectedGrade,
                                 standardCode: selectedStandardCode
                             )
+                            emptyMessage = "No questions are available for this standard yet."
                         } label: {
                             Text("Generate")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(selectedStandardCode.isEmpty)
                     }
                     .padding()
                     .background(.thinMaterial)
@@ -74,7 +80,7 @@ struct PracticeView: View {
                     if let problem = currentProblem {
                         ProblemCard(problem: problem)
                     } else {
-                        EmptyProblemView()
+                        EmptyProblemView(message: emptyMessage)
                     }
                 }
                 .padding()
@@ -85,7 +91,7 @@ struct PracticeView: View {
 }
 
 private struct ProblemCard: View {
-    let problem: PracticeProblem
+    let problem: Question
     @State private var showsAnswer = false
 
     var body: some View {
@@ -101,6 +107,18 @@ private struct ProblemCard: View {
                     .fontWeight(.semibold)
             }
 
+            if problem.type == .multipleChoice {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(problem.choices) { choice in
+                        Text("\(choice.id). \(choice.text)")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(10)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                    }
+                }
+            }
+
             Button(showsAnswer ? "Hide Answer" : "Show Answer") {
                 showsAnswer.toggle()
             }
@@ -110,7 +128,7 @@ private struct ProblemCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Answer")
                         .font(.headline)
-                    Text(problem.answer)
+                    Text(problem.correctAnswer)
 
                     Text("Steps")
                         .font(.headline)
@@ -132,11 +150,13 @@ private struct ProblemCard: View {
 }
 
 private struct EmptyProblemView: View {
+    let message: String
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Ready when you are")
                 .font(.headline)
-            Text("Choose a grade, subject, and standard, then tap Generate.")
+            Text(message)
                 .foregroundStyle(.secondary)
         }
         .padding()
