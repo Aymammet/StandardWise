@@ -25,6 +25,10 @@
 		A10000000000000000000017 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* LoginView.swift */; };
 		A10000000000000000000018 /* AdminDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AdminDashboardView.swift */; };
 		A10000000000000000000019 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* RootView.swift */; };
+		A10000000000000000000020 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* GoogleService-Info.plist */; };
+		F10000000000000000000001 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = F30000000000000000000001 /* FirebaseCore */; };
+		F10000000000000000000002 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F30000000000000000000002 /* FirebaseAuth */; };
+		F10000000000000000000003 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = F30000000000000000000003 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,10 +53,11 @@
 		A20000000000000000000018 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		A20000000000000000000019 /* AdminDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminDashboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000020 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A20000000000000000000021 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A30000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A30000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (F10000000000000000000001 /* FirebaseCore in Frameworks */, F10000000000000000000002 /* FirebaseAuth in Frameworks */, F10000000000000000000003 /* FirebaseFirestore in Frameworks */); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -63,7 +68,7 @@
 		};
 		A40000000000000000000001 /* StandardWise */ = {
 			isa = PBXGroup;
-			children = (A20000000000000000000001 /* StandardWiseApp.swift */, A20000000000000000000020 /* RootView.swift */, A40000000000000000000006 /* Core */, A40000000000000000000010 /* Features */, A20000000000000000000006 /* Assets.xcassets */, A40000000000000000000004 /* Preview Content */);
+			children = (A20000000000000000000001 /* StandardWiseApp.swift */, A20000000000000000000020 /* RootView.swift */, A20000000000000000000021 /* GoogleService-Info.plist */, A40000000000000000000006 /* Core */, A40000000000000000000010 /* Features */, A20000000000000000000006 /* Assets.xcassets */, A40000000000000000000004 /* Preview Content */);
 			path = StandardWise;
 			sourceTree = "<group>";
 		};
@@ -88,6 +93,7 @@
 			buildRules = ();
 			dependencies = ();
 			name = StandardWise;
+			packageProductDependencies = (F30000000000000000000001 /* FirebaseCore */, F30000000000000000000002 /* FirebaseAuth */, F30000000000000000000003 /* FirebaseFirestore */);
 			productName = StandardWise;
 			productReference = A20000000000000000000000 /* StandardWise.app */;
 			productType = "com.apple.product-type.application";
@@ -104,6 +110,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (en, Base);
 			mainGroup = A40000000000000000000000;
+			packageReferences = (F20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */);
 			productRefGroup = A40000000000000000000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -112,12 +119,29 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A30000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000006 /* Assets.xcassets in Resources */); runOnlyForDeploymentPostprocessing = 0; };
+		A30000000000000000000003 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000006 /* Assets.xcassets in Resources */, A10000000000000000000020 /* GoogleService-Info.plist in Resources */); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A30000000000000000000002 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000001 /* StandardWiseApp.swift in Sources */, A10000000000000000000002 /* PracticeView.swift in Sources */, A10000000000000000000003 /* LearningStandard.swift in Sources */, A10000000000000000000004 /* Question.swift in Sources */, A10000000000000000000005 /* ProblemGenerator.swift in Sources */, A10000000000000000000007 /* StandardWiseTheme.swift in Sources */, A10000000000000000000008 /* StandardWiseUser.swift in Sources */, A10000000000000000000009 /* AcademicSubject.swift in Sources */, A10000000000000000000010 /* GradeLevel.swift in Sources */, A10000000000000000000011 /* AnswerAttempt.swift in Sources */, A10000000000000000000012 /* QuestionFeedback.swift in Sources */, A10000000000000000000013 /* StandardWiseSampleData.swift in Sources */, A10000000000000000000014 /* QuestionBank.swift in Sources */, A10000000000000000000015 /* AppSession.swift in Sources */, A10000000000000000000016 /* LocalAuthService.swift in Sources */, A10000000000000000000017 /* LoginView.swift in Sources */, A10000000000000000000018 /* AdminDashboardView.swift in Sources */, A10000000000000000000019 /* RootView.swift in Sources */); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F30000000000000000000001 /* FirebaseCore */ = {isa = XCSwiftPackageProductDependency; package = F20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */; productName = FirebaseCore; };
+		F30000000000000000000002 /* FirebaseAuth */ = {isa = XCSwiftPackageProductDependency; package = F20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */; productName = FirebaseAuth; };
+		F30000000000000000000003 /* FirebaseFirestore */ = {isa = XCSwiftPackageProductDependency; package = F20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */; productName = FirebaseFirestore; };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A70000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; CODE_SIGNING_ALLOWED = NO; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; GCC_OPTIMIZATION_LEVEL = 0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE; ONLY_ACTIVE_ARCH = YES; SDKROOT = iphoneos; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; SWIFT_OPTIMIZATION_LEVEL = "-Onone";}; name = Debug; };

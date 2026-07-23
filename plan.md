@@ -355,11 +355,34 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the GitHub repo always reflects the latest stable local work.
 
+## 20. Add Firebase for Production Data `[~]`
+
+- Create a Firebase project for StandardWise.
+- Add the iOS Firebase config file to the Xcode app target.
+- Add Firebase SDK packages needed for app startup, authentication, and Firestore.
+- Initialize Firebase when the app launches.
+- Move login from local sample accounts to Firebase Authentication.
+- Add admin role handling so admins and regular users open the correct screens.
+- Create Firestore collections for users, subjects, standards, questions, answer attempts, and feedback.
+- Move admin-created subjects, standards, and questions from local storage to Firestore.
+- Move student answer attempts and feedback from local storage to Firestore.
+- Add loading, empty, retry, and error states for Firebase reads and writes.
+- Add Firebase security rules so regular users cannot edit admin-only data.
+- Add a migration path from existing local sample data to Firebase seed data.
+- Test app launch, login, question generation, admin editing, feedback, and analytics with Firebase enabled.
+- Added the Firebase config file to the app target.
+- Added FirebaseCore, FirebaseAuth, and FirebaseFirestore packages.
+- Initialized Firebase when the app launches.
+- Resolved Firebase package dependencies and verified the app builds.
+- Connected the login flow to Firebase Authentication.
+- Added temporary role mapping: `admin@standardwise.app` opens the admin dashboard; other Firebase users open the regular practice screen.
+
+**Done when:** StandardWise uses Firebase for production auth and shared cloud data instead of only local device storage.
+
 ## Open Decisions
 
-- Which database should StandardWise use?
-- Should login use Firebase, Supabase, local school accounts, or another auth system?
-- Will users create their own accounts, or will admin users create accounts for them?
+- Which Firebase data should be seeded first: sample subjects and standards, sample questions, or admin users?
+- Should login allow self-signup, or should admin users create regular-user accounts?
 - Should the app require internet connection?
 - Should questions be random, sequential, or adaptive based on past answers?
 - Should students see progress history?
@@ -370,4 +393,4 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 ## Immediate Next Step
 
-- Start with milestone 13: choose and add database persistence so app data survives restarts.
+- Continue milestone 20: resolve Firebase packages, verify the app builds, then connect login to Firebase Authentication.

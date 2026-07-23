@@ -41,7 +41,9 @@ struct LoginView: View {
                     }
 
                     Button {
-                        session.login(email: email, password: password)
+                        Task {
+                            await session.login(email: email, password: password)
+                        }
                     } label: {
                         if session.isLoggingIn {
                             ProgressView()
@@ -60,10 +62,10 @@ struct LoginView: View {
                 .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Sample logins")
+                    Text("Firebase test logins")
                         .font(.headline)
-                    Text("Admin: admin@standardwise.app / admin123")
-                    Text("Regular: student@standardwise.app / student123")
+                    Text("Admin role: admin@standardwise.app")
+                    Text("Regular role: any other Firebase email/password user")
                 }
                 .font(.footnote)
                 .foregroundStyle(.secondary)
