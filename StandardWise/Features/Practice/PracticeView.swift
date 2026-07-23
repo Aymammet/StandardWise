@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PracticeView: View {
+    @ObservedObject var questionStore: QuestionStore
     var onLogout: (() -> Void)?
 
     @State private var selectedSubject = "Math"
@@ -70,7 +71,8 @@ struct PracticeView: View {
                             currentProblem = ProblemGenerator.generate(
                                 subject: selectedSubject,
                                 grade: selectedGrade,
-                                standardCode: selectedStandardCode
+                                standardCode: selectedStandardCode,
+                                questions: questionStore.questions
                             )
                             emptyMessage = "No questions are available for this standard yet."
                         } label: {

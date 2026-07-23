@@ -153,7 +153,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** admin users have a central dashboard with navigation to all management areas.
 
-## 9. Build Admin Question Management `[ ]`
+## 9. Build Admin Question Management `[x]`
 
 - Create a question list page.
 - Add search and filters for subject, grade, standard, and question type.
@@ -163,6 +163,15 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Build a question form with subject, grade, standard, prompt, type, choices, correct answer, alternate answers, and explanation.
 - Validate required fields before saving.
 - Save locally first, then connect to the database later.
+- Added a shared local `QuestionStore` for the current app session.
+- Connected regular-user question generation to the shared local question store.
+- Replaced the admin Questions placeholder with a real question management screen.
+- Added search plus filters for subject, grade, standard, question type, and active/archive status.
+- Added an Add Question form for multiple-choice and input-answer questions.
+- Added edit support by tapping a question or using the edit swipe action.
+- Added archive support with confirmation so archived questions no longer appear in regular-user generation.
+- Added validation for required prompt, explanation, answers, and multiple-choice choices.
+- Verified the app builds successfully after the admin question management update.
 
 **Done when:** admins can create, edit, archive, and review practice questions from inside the app.
 

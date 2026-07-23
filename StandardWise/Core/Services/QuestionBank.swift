@@ -86,8 +86,13 @@ enum QuestionBank {
         )
     ]
 
-    static func questions(subject: String, grade: String, standardCode: String) -> [Question] {
-        sampleQuestions.filter { question in
+    static func questions(
+        in sourceQuestions: [Question] = sampleQuestions,
+        subject: String,
+        grade: String,
+        standardCode: String
+    ) -> [Question] {
+        sourceQuestions.filter { question in
             question.isActive
                 && question.standardCode == standardCode
                 && questionSubjectName(question) == subject
@@ -160,5 +165,48 @@ enum QuestionBank {
 
     private static func questionGradeName(_ question: Question) -> String {
         LearningStandard.sampleStandards.first { $0.id == question.standardID }?.gradeName ?? ""
+    }
+}
+
+final class QuestionStore: ObservableObject {
+    @Published private(set) var questions: [Question]
+
+    init(questions: [Question] = QuestionBank.sampleQuestions) {
+        self.questions = questions
+    }
+
+    var activeQuestions: [Question] {
+        questions.filter(\.isActive)
+    }
+
+    func save(_ question: Question) {
+        if let index = questions.firstIndex(where: { $0.id == question.id }) {
+            questions[index] = question
+        } else {
+            questions.insert(question, at: 0)
+        }
+    }
+
+    func archive(_ question: Question) {
+        let archivedQuestion = Question(
+            id: question.id,
+            subjectID: question.subjectID,
+            gradeID: question.gradeID,
+            standardID: question.standardID,
+            standardCode: question.standardCode,
+            prompt: question.prompt,
+            type: question.type,
+            choices: question.choices,
+            correctAnswer: question.correctAnswer,
+            acceptedAlternateAnswers: question.acceptedAlternateAnswers,
+            explanation: question.explanation,
+            difficulty: question.difficulty,
+            isActive: false,
+            createdByAdminID: question.createdByAdminID,
+            createdAt: question.createdAt,
+            updatedAt: Date()
+        )
+
+        save(archivedQuestion)
     }
 }
