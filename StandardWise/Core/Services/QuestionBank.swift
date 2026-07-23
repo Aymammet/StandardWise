@@ -165,10 +165,21 @@ enum QuestionBank {
 }
 
 final class QuestionStore: ObservableObject {
-    @Published private(set) var questions: [Question]
+    @Published private(set) var questions: [Question] {
+        didSet {
+            LocalPersistence.save(questions, forKey: storageKey)
+        }
+    }
+
+    private let storageKey = "standardwise.questions"
 
     init(questions: [Question] = QuestionBank.sampleQuestions) {
-        self.questions = questions
+        if let savedQuestions = LocalPersistence.load([Question].self, forKey: storageKey) {
+            self.questions = savedQuestions
+        } else {
+            self.questions = questions
+            LocalPersistence.save(questions, forKey: storageKey)
+        }
     }
 
     var activeQuestions: [Question] {

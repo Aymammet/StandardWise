@@ -14,10 +14,6 @@ struct AdminDashboardView: View {
         questionStore.activeQuestions.filter { $0.type == .multipleChoice }.count
     }
 
-    private var inputAnswerCount: Int {
-        questionStore.activeQuestions.filter { $0.type == .input }.count
-    }
-
     private var newFeedbackCount: Int {
         feedbackStore.feedbackItems.filter { $0.status == .new }.count
     }
@@ -100,9 +96,10 @@ struct AdminDashboardView: View {
                                 title: "Analytics",
                                 subtitle: "Analyze standards, accuracy, and activity",
                                 systemImage: "chart.bar",
-                                destination: AdminPlaceholderView(
-                                    title: "Analytics",
-                                    message: "Analytics starts in Step 14."
+                                destination: AdminAnalyticsView(
+                                    users: users,
+                                    questionStore: questionStore,
+                                    answerAttemptStore: answerAttemptStore
                                 )
                             )
                         }
@@ -110,6 +107,7 @@ struct AdminDashboardView: View {
                 }
                 .padding()
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Admin")
             .toolbar {
                 Button("Logout", action: onLogout)
@@ -123,7 +121,7 @@ struct AdminDashboardView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Use this dashboard to manage content, review users, and prepare analytics as each admin tool is added.")
+            Text("Manage practice content, review student feedback, and track progress from one place.")
                 .foregroundStyle(.secondary)
         }
     }
@@ -146,6 +144,7 @@ private struct AdminMetricCard: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+        .frame(minHeight: 108)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(Color(.secondarySystemBackground))
@@ -181,6 +180,10 @@ private struct AdminNavigationRow<Destination: View>: View {
                 }
 
                 Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
             .padding()
             .background(Color(.secondarySystemBackground))
@@ -1374,6 +1377,274 @@ private struct AdminAttemptRow: View {
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
+    }
+}
+
+private struct AdminAnalyticsView: View {
+    let users: [StandardWiseUser]
+    @ObservedObject var questionStore: QuestionStore
+    @ObservedObject var answerAttemptStore: AnswerAttemptStore
+
+    private var attempts: [AnswerAttempt] {
+        answerAttemptStore.attempts
+    }
+
+    private var correctCount: Int {
+        attempts.filter(\.isCorrect).count
+    }
+
+    private var incorrectCount: Int {
+        attempts.count - correctCount
+    }
+
+    private var accuracyText: String {
+        guard !attempts.isEmpty else { return "No data" }
+
+        let accuracy = Double(correctCount) / Double(attempts.count) * 100
+        return "\(Int(accuracy.rounded()))%"
+    }
+
+    var body: some View {
+        List {
+            Section("Overview") {
+                AnalyticsSummaryGrid(
+                    attempts: attempts.count,
+                    correct: correctCount,
+                    incorrect: incorrectCount,
+                    accuracy: accuracyText
+                )
+            }
+
+            if attempts.isEmpty {
+                Section {
+                    Text("Analytics will appear after students check answers.")
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                AnalyticsGroupSection(
+                    title: "Attempts by Subject",
+                    items: AnalyticsGroup.make(from: attempts, keyPath: \.subjectName)
+                )
+
+                AnalyticsGroupSection(
+                    title: "Attempts by Grade",
+                    items: AnalyticsGroup.make(from: attempts, keyPath: \.gradeName)
+                )
+
+                AnalyticsGroupSection(
+                    title: "Attempts by Standard",
+                    items: AnalyticsGroup.make(from: attempts, keyPath: \.standardCode)
+                )
+
+                AnalyticsGroupSection(
+                    title: "Most Practiced Standards",
+                    items: AnalyticsGroup.make(from: attempts, keyPath: \.standardCode)
+                        .sorted { $0.total > $1.total }
+                )
+
+                AnalyticsQuestionSection(
+                    title: "Most Missed Questions",
+                    items: missedQuestionGroups
+                )
+
+                AnalyticsUserSection(
+                    users: users,
+                    attempts: attempts
+                )
+            }
+        }
+        .navigationTitle("Analytics")
+    }
+
+    private var missedQuestionGroups: [AnalyticsQuestionGroup] {
+        Dictionary(grouping: attempts, by: \.questionID)
+            .map { questionID, attempts in
+                AnalyticsQuestionGroup(
+                    questionID: questionID,
+                    prompt: questionStore.questions.first { $0.id == questionID }?.prompt ?? "Question not found",
+                    standardCode: attempts.first?.standardCode ?? "Unknown",
+                    total: attempts.count,
+                    missed: attempts.filter { !$0.isCorrect }.count
+                )
+            }
+            .filter { $0.missed > 0 }
+            .sorted {
+                if $0.missed == $1.missed {
+                    return $0.total > $1.total
+                }
+                return $0.missed > $1.missed
+            }
+    }
+}
+
+private struct AnalyticsSummaryGrid: View {
+    let attempts: Int
+    let correct: Int
+    let incorrect: Int
+    let accuracy: String
+
+    var body: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 12),
+                GridItem(.flexible(), spacing: 12)
+            ],
+            spacing: 12
+        ) {
+            AdminMetricCard(title: "Attempts", value: "\(attempts)", subtitle: "Total checked answers")
+            AdminMetricCard(title: "Accuracy", value: accuracy, subtitle: "Correct answer rate")
+            AdminMetricCard(title: "Correct", value: "\(correct)", subtitle: "Right answers")
+            AdminMetricCard(title: "Incorrect", value: "\(incorrect)", subtitle: "Missed answers")
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+private struct AnalyticsGroup: Identifiable {
+    let id: String
+    let total: Int
+    let correct: Int
+
+    var accuracyText: String {
+        guard total > 0 else { return "No data" }
+
+        let accuracy = Double(correct) / Double(total) * 100
+        return "\(Int(accuracy.rounded()))%"
+    }
+
+    static func make(from attempts: [AnswerAttempt], keyPath: KeyPath<AnswerAttempt, String>) -> [AnalyticsGroup] {
+        Dictionary(grouping: attempts, by: { $0[keyPath: keyPath] })
+            .map { key, attempts in
+                AnalyticsGroup(
+                    id: key,
+                    total: attempts.count,
+                    correct: attempts.filter(\.isCorrect).count
+                )
+            }
+            .sorted { $0.id < $1.id }
+    }
+}
+
+private struct AnalyticsGroupSection: View {
+    let title: String
+    let items: [AnalyticsGroup]
+
+    var body: some View {
+        Section(title) {
+            ForEach(items.prefix(8)) { item in
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.id)
+                            .font(.headline)
+                        Text("\(item.total) attempts")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text(item.accuracyText)
+                        .font(.headline)
+                        .foregroundStyle(.blue)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+}
+
+private struct AnalyticsQuestionGroup: Identifiable {
+    let questionID: UUID
+    let prompt: String
+    let standardCode: String
+    let total: Int
+    let missed: Int
+
+    var id: UUID { questionID }
+}
+
+private struct AnalyticsQuestionSection: View {
+    let title: String
+    let items: [AnalyticsQuestionGroup]
+
+    var body: some View {
+        Section(title) {
+            if items.isEmpty {
+                Text("No missed questions yet.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(items.prefix(5)) { item in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(item.standardCode)
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.blue)
+                            Spacer()
+                            Text("\(item.missed) missed of \(item.total)")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+
+                        Text(item.prompt)
+                            .font(.subheadline)
+                            .lineLimit(3)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+    }
+}
+
+private struct AnalyticsUserSection: View {
+    let users: [StandardWiseUser]
+    let attempts: [AnswerAttempt]
+
+    private var userSummaries: [AnalyticsUserSummary] {
+        users.map { user in
+            let userAttempts = attempts.filter { $0.userID == user.id }
+            return AnalyticsUserSummary(
+                user: user,
+                total: userAttempts.count,
+                correct: userAttempts.filter(\.isCorrect).count
+            )
+        }
+        .sorted { $0.total > $1.total }
+    }
+
+    var body: some View {
+        Section("User Accuracy") {
+            ForEach(userSummaries) { summary in
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(summary.user.name)
+                            .font(.headline)
+                        Text("\(summary.total) attempts")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text(summary.accuracyText)
+                        .font(.headline)
+                        .foregroundStyle(.blue)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+}
+
+private struct AnalyticsUserSummary: Identifiable {
+    let user: StandardWiseUser
+    let total: Int
+    let correct: Int
+
+    var id: UUID { user.id }
+
+    var accuracyText: String {
+        guard total > 0 else { return "No data" }
+
+        let accuracy = Double(correct) / Double(total) * 100
+        return "\(Int(accuracy.rounded()))%"
     }
 }
 

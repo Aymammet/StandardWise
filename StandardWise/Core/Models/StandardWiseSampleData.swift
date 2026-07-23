@@ -23,3 +23,17 @@ enum StandardWiseSampleData {
         GradeLevel(id: grade9ID, name: "9th")
     ]
 }
+
+enum LocalPersistence {
+    static func load<Value: Decodable>(_ type: Value.Type, forKey key: String) -> Value? {
+        guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
+
+        return try? JSONDecoder().decode(type, from: data)
+    }
+
+    static func save<Value: Encodable>(_ value: Value, forKey key: String) {
+        guard let data = try? JSONEncoder().encode(value) else { return }
+
+        UserDefaults.standard.set(data, forKey: key)
+    }
+}

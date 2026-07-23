@@ -45,10 +45,21 @@ struct QuestionFeedback: Identifiable, Codable, Equatable {
 }
 
 final class FeedbackStore: ObservableObject {
-    @Published private(set) var feedbackItems: [QuestionFeedback]
+    @Published private(set) var feedbackItems: [QuestionFeedback] {
+        didSet {
+            LocalPersistence.save(feedbackItems, forKey: storageKey)
+        }
+    }
+
+    private let storageKey = "standardwise.feedback"
 
     init(feedbackItems: [QuestionFeedback] = []) {
-        self.feedbackItems = feedbackItems
+        if let savedFeedback = LocalPersistence.load([QuestionFeedback].self, forKey: storageKey) {
+            self.feedbackItems = savedFeedback
+        } else {
+            self.feedbackItems = feedbackItems
+            LocalPersistence.save(feedbackItems, forKey: storageKey)
+        }
     }
 
     func submitFeedback(userID: UUID, questionID: UUID, message: String) {

@@ -244,7 +244,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the app records student practice activity and admins can review basic user progress.
 
-## 13. Add Database and Persistence `[ ]`
+## 13. Add Database and Persistence `[x]`
 
 - Choose the database approach for the app.
 - Move users, subjects, grades, standards, questions, attempts, and feedback into persistent storage.
@@ -252,10 +252,19 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Connect admin question creation and editing to database records.
 - Connect feedback submission to database records.
 - Add loading, empty, retry, and error states around database reads and writes.
+- Chose local on-device persistence first using encoded app data in `UserDefaults`.
+- Added shared local persistence helpers for Codable app data.
+- Persisted questions so admin-created and edited questions survive app restarts.
+- Persisted subjects and standards so admin-created dropdown data survives app restarts.
+- Persisted feedback so student reports and admin status updates survive app restarts.
+- Persisted answer attempts so user progress summaries survive app restarts.
+- Connected regular-user question generation to persisted question and standard data.
+- Left remote/cloud database selection as a future decision when the app needs multi-device or shared school data.
+- Verified the app builds successfully after the local persistence update.
 
 **Done when:** app data survives app restarts and admin-created questions become available to regular users.
 
-## 14. Build Admin Analytics `[ ]`
+## 14. Build Admin Analytics `[x]`
 
 - Show attempts by subject.
 - Show attempts by grade.
@@ -265,10 +274,18 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Highlight most practiced standards.
 - Show user-level accuracy summaries.
 - Start with simple lists and summary cards before adding charts.
+- Replaced the admin Analytics placeholder with a real analytics page.
+- Added overview cards for total attempts, accuracy, correct answers, and incorrect answers.
+- Added grouped attempt summaries by subject, grade, and standard.
+- Added most practiced standards based on attempt count.
+- Added most missed questions based on incorrect attempt count.
+- Added user-level accuracy summaries.
+- Added an empty analytics state for when no answers have been checked yet.
+- Verified the app builds successfully after the analytics update.
 
 **Done when:** admins can understand student practice patterns and identify weak standards or problematic questions.
 
-## 15. Polish UI and UX `[ ]`
+## 15. Polish UI and UX `[x]`
 
 - Keep the regular-user screen simple, focused, and student-friendly.
 - Use readable font sizes and clear spacing.
@@ -279,6 +296,14 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Add friendly error messages.
 - Make dropdown labels and answer controls easy to understand.
 - Make the app work well on different screen sizes.
+- Improved the regular-user practice screen heading and helper text.
+- Changed the Generate button wording to `Generate Question`.
+- Improved the ready/empty state below the practice controls.
+- Added clearer visual selection styling for multiple-choice answers.
+- Made the admin dashboard intro more direct and easier to scan.
+- Improved admin metric card sizing for a steadier dashboard layout.
+- Added chevrons to admin navigation rows so tappable areas are clearer.
+- Verified the app builds successfully after the UI polish update.
 
 **Done when:** both regular-user and admin experiences feel clean, understandable, and ready for real use.
 
@@ -293,7 +318,19 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** users can understand and use the practice flow even without relying only on color or visual layout.
 
-## 17. Testing and Quality Checks `[ ]`
+## 17. Write and Update README `[ ]`
+
+- Create or update `README.md` for the StandardWise repo.
+- Explain what the app does in clear language.
+- Document admin and regular-user sample logins.
+- Summarize current features for regular users and admins.
+- Include local setup instructions for opening/running the Xcode project.
+- Mention that data is currently local/in-memory until database persistence is added.
+- Keep README updated when major features are added.
+
+**Done when:** the repo has a clear README that explains the app, current features, test logins, and local setup.
+
+## 18. Testing and Quality Checks `[ ]`
 
 - Test login as admin and regular user.
 - Test subject, grade, and standard filtering.
@@ -308,7 +345,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the main student and admin workflows can be tested reliably after each major build step.
 
-## 18. Git and Release Workflow `[~]`
+## 19. Git and Release Workflow `[~]`
 
 - Keep the local repo connected to `git@github.com:Aymammet/StandardWise.git`.
 - Commit each meaningful feature step with a clear message.
@@ -333,4 +370,4 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 ## Immediate Next Step
 
-- Start with milestone 4: replace the current hard-coded `ProblemGenerator` with structured local question data that supports both multiple choice and input-answer questions.
+- Start with milestone 13: choose and add database persistence so app data survives restarts.

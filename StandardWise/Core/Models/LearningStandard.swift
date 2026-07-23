@@ -39,19 +39,41 @@ struct LearningStandard: Identifiable, Codable, Equatable {
 }
 
 final class StandardStore: ObservableObject {
-    @Published private(set) var subjects: [AcademicSubject]
-    @Published private(set) var standards: [LearningStandard]
+    @Published private(set) var subjects: [AcademicSubject] {
+        didSet {
+            LocalPersistence.save(subjects, forKey: subjectsStorageKey)
+        }
+    }
+    @Published private(set) var standards: [LearningStandard] {
+        didSet {
+            LocalPersistence.save(standards, forKey: standardsStorageKey)
+        }
+    }
 
     let grades: [GradeLevel]
+    private let subjectsStorageKey = "standardwise.subjects"
+    private let standardsStorageKey = "standardwise.standards"
 
     init(
         subjects: [AcademicSubject] = StandardWiseSampleData.subjects,
         grades: [GradeLevel] = StandardWiseSampleData.grades,
         standards: [LearningStandard] = LearningStandard.sampleStandards
     ) {
-        self.subjects = subjects
+        if let savedSubjects = LocalPersistence.load([AcademicSubject].self, forKey: subjectsStorageKey) {
+            self.subjects = savedSubjects
+        } else {
+            self.subjects = subjects
+            LocalPersistence.save(subjects, forKey: subjectsStorageKey)
+        }
+
         self.grades = grades
-        self.standards = standards
+
+        if let savedStandards = LocalPersistence.load([LearningStandard].self, forKey: standardsStorageKey) {
+            self.standards = savedStandards
+        } else {
+            self.standards = standards
+            LocalPersistence.save(standards, forKey: standardsStorageKey)
+        }
     }
 
     var activeSubjects: [AcademicSubject] {

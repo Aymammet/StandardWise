@@ -35,10 +35,21 @@ struct AnswerAttempt: Identifiable, Codable, Equatable {
 }
 
 final class AnswerAttemptStore: ObservableObject {
-    @Published private(set) var attempts: [AnswerAttempt]
+    @Published private(set) var attempts: [AnswerAttempt] {
+        didSet {
+            LocalPersistence.save(attempts, forKey: storageKey)
+        }
+    }
+
+    private let storageKey = "standardwise.answerAttempts"
 
     init(attempts: [AnswerAttempt] = []) {
-        self.attempts = attempts
+        if let savedAttempts = LocalPersistence.load([AnswerAttempt].self, forKey: storageKey) {
+            self.attempts = savedAttempts
+        } else {
+            self.attempts = attempts
+            LocalPersistence.save(attempts, forKey: storageKey)
+        }
     }
 
     func record(_ attempt: AnswerAttempt) {

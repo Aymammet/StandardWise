@@ -12,7 +12,7 @@ struct PracticeView: View {
     @State private var selectedGrade = "6th"
     @State private var selectedStandardCode = "6.RP.1"
     @State private var currentProblem: Question?
-    @State private var emptyMessage = "Choose a subject, grade, and standard, then tap Generate."
+    @State private var emptyMessage = "Choose a subject, grade, and standard, then tap Generate Question."
 
     private var subjects: [String] {
         standardStore.activeSubjects.map(\.name)
@@ -37,9 +37,14 @@ struct PracticeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Generate practice problems by Ohio standard.")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Practice by standard")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            Text("Pick what you want to practice, then generate one question at a time.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
 
                         LabeledMenuSelector(
                             title: "Subject",
@@ -49,7 +54,7 @@ struct PracticeView: View {
                         .onChange(of: selectedSubject) { _, _ in
                             selectedStandardCode = filteredStandards.first?.code ?? ""
                             currentProblem = nil
-                            emptyMessage = "Choose a subject, grade, and standard, then tap Generate."
+                            emptyMessage = "Choose a subject, grade, and standard, then tap Generate Question."
                         }
 
                         LabeledMenuSelector(
@@ -60,7 +65,7 @@ struct PracticeView: View {
                         .onChange(of: selectedGrade) { _, _ in
                             selectedStandardCode = filteredStandards.first?.code ?? ""
                             currentProblem = nil
-                            emptyMessage = "Choose a subject, grade, and standard, then tap Generate."
+                            emptyMessage = "Choose a subject, grade, and standard, then tap Generate Question."
                         }
 
                         LabeledMenuSelector(
@@ -89,7 +94,7 @@ struct PracticeView: View {
                             )
                             emptyMessage = "No questions are available for this standard yet."
                         } label: {
-                            Text("Generate")
+                            Text("Generate Question")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                         }
@@ -115,7 +120,8 @@ struct PracticeView: View {
                 }
                 .padding()
             }
-            .navigationTitle("StandardWise")
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Practice")
             .toolbar {
                 if let onLogout {
                     Button("Logout", action: onLogout)
@@ -237,6 +243,10 @@ private struct ProblemCard: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(10)
                             .background(choiceBackground(choice))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                                    .stroke(choice.id == selectedChoiceID ? Color.blue.opacity(0.45) : Color.clear, lineWidth: 1)
+                            }
                             .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
                         }
                         .buttonStyle(.plain)
@@ -267,6 +277,7 @@ private struct ProblemCard: View {
                 )
             }
             .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .disabled(!hasAnswer || answerResult != nil)
 
             if let answerResult {
@@ -300,6 +311,7 @@ private struct ProblemCard: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .disabled(didSubmitFeedback)
         }
         .padding()
@@ -426,9 +438,10 @@ private struct EmptyProblemView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Ready when you are")
+            Label("Ready when you are", systemImage: "sparkle.magnifyingglass")
                 .font(.headline)
             Text(message)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .padding()
