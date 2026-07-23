@@ -26,4 +26,48 @@ struct QuestionFeedback: Identifiable, Codable, Equatable {
     var message: String
     var status: FeedbackStatus
     let createdAt: Date
+
+    init(
+        id: UUID = UUID(),
+        userID: UUID,
+        questionID: UUID,
+        message: String,
+        status: FeedbackStatus = .new,
+        createdAt: Date = Date()
+    ) {
+        self.id = id
+        self.userID = userID
+        self.questionID = questionID
+        self.message = message
+        self.status = status
+        self.createdAt = createdAt
+    }
+}
+
+final class FeedbackStore: ObservableObject {
+    @Published private(set) var feedbackItems: [QuestionFeedback]
+
+    init(feedbackItems: [QuestionFeedback] = []) {
+        self.feedbackItems = feedbackItems
+    }
+
+    func submitFeedback(userID: UUID, questionID: UUID, message: String) {
+        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedMessage.isEmpty else { return }
+
+        feedbackItems.insert(
+            QuestionFeedback(
+                userID: userID,
+                questionID: questionID,
+                message: trimmedMessage
+            ),
+            at: 0
+        )
+    }
+
+    func updateStatus(for feedback: QuestionFeedback, status: FeedbackStatus) {
+        guard let index = feedbackItems.firstIndex(where: { $0.id == feedback.id }) else { return }
+
+        feedbackItems[index].status = status
+    }
 }

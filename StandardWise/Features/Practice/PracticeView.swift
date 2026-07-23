@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct PracticeView: View {
+    let user: StandardWiseUser
     @ObservedObject var questionStore: QuestionStore
+    @ObservedObject var standardStore: StandardStore
+    @ObservedObject var feedbackStore: FeedbackStore
+    @ObservedObject var answerAttemptStore: AnswerAttemptStore
     var onLogout: (() -> Void)?
 
     @State private var selectedSubject = "Math"
@@ -10,9 +14,17 @@ struct PracticeView: View {
     @State private var currentProblem: Question?
     @State private var emptyMessage = "Choose a subject, grade, and standard, then tap Generate."
 
-    private let subjects = StandardWiseSampleData.subjects.map(\.name)
-    private let grades = StandardWiseSampleData.grades.map(\.name)
-    private let standards = LearningStandard.sampleStandards
+    private var subjects: [String] {
+        standardStore.activeSubjects.map(\.name)
+    }
+
+    private var grades: [String] {
+        standardStore.grades.map(\.name)
+    }
+
+    private var standards: [LearningStandard] {
+        standardStore.activeStandards
+    }
 
     private var filteredStandards: [LearningStandard] {
         standards.filter { standard in
@@ -72,7 +84,8 @@ struct PracticeView: View {
                                 subject: selectedSubject,
                                 grade: selectedGrade,
                                 standardCode: selectedStandardCode,
-                                questions: questionStore.questions
+                                questions: questionStore.questions,
+                                standards: standardStore.standards
                             )
                             emptyMessage = "No questions are available for this standard yet."
                         } label: {
@@ -88,7 +101,13 @@ struct PracticeView: View {
                     .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
 
                     if let problem = currentProblem {
-                        ProblemCard(problem: problem)
+                        ProblemCard(
+                            user: user,
+                            problem: problem,
+                            standard: standardStore.standards.first { $0.id == problem.standardID },
+                            feedbackStore: feedbackStore,
+                            answerAttemptStore: answerAttemptStore
+                        )
                             .id(problem.id)
                     } else {
                         EmptyProblemView(message: emptyMessage)
@@ -160,10 +179,16 @@ private struct LabeledMenuSelector: View {
 }
 
 private struct ProblemCard: View {
+    let user: StandardWiseUser
     let problem: Question
+    let standard: LearningStandard?
+    @ObservedObject var feedbackStore: FeedbackStore
+    @ObservedObject var answerAttemptStore: AnswerAttemptStore
     @State private var selectedChoiceID: String?
     @State private var typedAnswer = ""
     @State private var answerResult: AnswerResult?
+    @State private var isShowingFeedbackForm = false
+    @State private var didSubmitFeedback = false
 
     private var hasAnswer: Bool {
         switch problem.type {
@@ -227,7 +252,19 @@ private struct ProblemCard: View {
             }
 
             Button("Check Answer") {
-                answerResult = AnswerChecker.check(answer: submittedAnswer, for: problem)
+                let result = AnswerChecker.check(answer: submittedAnswer, for: problem)
+                answerResult = result
+                answerAttemptStore.record(
+                    AnswerAttempt(
+                        userID: user.id,
+                        questionID: problem.id,
+                        subjectName: standard?.subjectName ?? "Unknown",
+                        gradeName: standard?.gradeName ?? "Unknown",
+                        standardCode: problem.standardCode,
+                        submittedAnswer: submittedAnswer,
+                        isCorrect: result.isCorrect
+                    )
+                )
             }
             .buttonStyle(.borderedProminent)
             .disabled(!hasAnswer || answerResult != nil)
@@ -255,6 +292,15 @@ private struct ProblemCard: View {
                 .background(answerResult.isCorrect ? Color.green.opacity(0.12) : Color.red.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
             }
+
+            Button {
+                isShowingFeedbackForm = true
+            } label: {
+                Label(didSubmitFeedback ? "Feedback Sent" : "Send Feedback", systemImage: "bubble.left")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .disabled(didSubmitFeedback)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -265,6 +311,16 @@ private struct ProblemCard: View {
             radius: StandardWiseTheme.cardShadowRadius,
             y: StandardWiseTheme.cardShadowYOffset
         )
+        .sheet(isPresented: $isShowingFeedbackForm) {
+            FeedbackFormView(question: problem) { message in
+                feedbackStore.submitFeedback(
+                    userID: user.id,
+                    questionID: problem.id,
+                    message: message
+                )
+                didSubmitFeedback = true
+            }
+        }
     }
 
     private func choiceBackground(_ choice: AnswerChoice) -> Color {
@@ -281,6 +337,67 @@ private struct ProblemCard: View {
         }
 
         return Color(.secondarySystemBackground)
+    }
+}
+
+private struct FeedbackFormView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let question: Question
+    let onSubmit: (String) -> Void
+
+    @State private var message = ""
+    @State private var validationMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Question") {
+                    Text(question.standardCode)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.blue)
+                    Text(question.prompt)
+                }
+
+                Section("Feedback") {
+                    TextField("What should admin know?", text: $message, axis: .vertical)
+                        .lineLimit(4...8)
+                }
+
+                if let validationMessage {
+                    Section {
+                        Text(validationMessage)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .navigationTitle("Send Feedback")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Send") {
+                        submit()
+                    }
+                }
+            }
+        }
+    }
+
+    private func submit() {
+        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedMessage.isEmpty else {
+            validationMessage = "Feedback message is required."
+            return
+        }
+
+        onSubmit(trimmedMessage)
+        dismiss()
     }
 }
 

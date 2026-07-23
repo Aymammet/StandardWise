@@ -88,15 +88,18 @@ enum QuestionBank {
 
     static func questions(
         in sourceQuestions: [Question] = sampleQuestions,
+        standards: [LearningStandard] = LearningStandard.sampleStandards,
         subject: String,
         grade: String,
         standardCode: String
     ) -> [Question] {
         sourceQuestions.filter { question in
-            question.isActive
+            let standard = standards.first { $0.id == question.standardID }
+
+            return question.isActive
                 && question.standardCode == standardCode
-                && questionSubjectName(question) == subject
-                && questionGradeName(question) == grade
+                && standard?.subjectName == subject
+                && standard?.gradeName == grade
         }
     }
 
@@ -159,13 +162,6 @@ enum QuestionBank {
         )
     }
 
-    private static func questionSubjectName(_ question: Question) -> String {
-        LearningStandard.sampleStandards.first { $0.id == question.standardID }?.subjectName ?? ""
-    }
-
-    private static func questionGradeName(_ question: Question) -> String {
-        LearningStandard.sampleStandards.first { $0.id == question.standardID }?.gradeName ?? ""
-    }
 }
 
 final class QuestionStore: ObservableObject {

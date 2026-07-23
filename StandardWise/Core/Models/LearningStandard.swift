@@ -9,6 +9,7 @@ struct LearningStandard: Identifiable, Codable, Equatable {
     let code: String
     let name: String
     let description: String
+    let isActive: Bool
 
     var displayName: String {
         "\(code): \(name)"
@@ -22,7 +23,8 @@ struct LearningStandard: Identifiable, Codable, Equatable {
         gradeName: String,
         code: String,
         name: String,
-        description: String
+        description: String,
+        isActive: Bool = true
     ) {
         self.id = id
         self.subjectID = subjectID
@@ -32,6 +34,74 @@ struct LearningStandard: Identifiable, Codable, Equatable {
         self.code = code
         self.name = name
         self.description = description
+        self.isActive = isActive
+    }
+}
+
+final class StandardStore: ObservableObject {
+    @Published private(set) var subjects: [AcademicSubject]
+    @Published private(set) var standards: [LearningStandard]
+
+    let grades: [GradeLevel]
+
+    init(
+        subjects: [AcademicSubject] = StandardWiseSampleData.subjects,
+        grades: [GradeLevel] = StandardWiseSampleData.grades,
+        standards: [LearningStandard] = LearningStandard.sampleStandards
+    ) {
+        self.subjects = subjects
+        self.grades = grades
+        self.standards = standards
+    }
+
+    var activeSubjects: [AcademicSubject] {
+        subjects.filter(\.isActive).sorted { $0.name < $1.name }
+    }
+
+    var activeStandards: [LearningStandard] {
+        standards.filter(\.isActive)
+    }
+
+    func saveSubject(_ subject: AcademicSubject) {
+        if let index = subjects.firstIndex(where: { $0.id == subject.id }) {
+            subjects[index] = subject
+        } else {
+            subjects.append(subject)
+        }
+    }
+
+    func archiveSubject(_ subject: AcademicSubject) {
+        saveSubject(
+            AcademicSubject(
+                id: subject.id,
+                name: subject.name,
+                isActive: false
+            )
+        )
+    }
+
+    func saveStandard(_ standard: LearningStandard) {
+        if let index = standards.firstIndex(where: { $0.id == standard.id }) {
+            standards[index] = standard
+        } else {
+            standards.insert(standard, at: 0)
+        }
+    }
+
+    func archiveStandard(_ standard: LearningStandard) {
+        saveStandard(
+            LearningStandard(
+                id: standard.id,
+                subjectID: standard.subjectID,
+                gradeID: standard.gradeID,
+                subjectName: standard.subjectName,
+                gradeName: standard.gradeName,
+                code: standard.code,
+                name: standard.name,
+                description: standard.description,
+                isActive: false
+            )
+        )
     }
 }
 

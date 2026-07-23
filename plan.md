@@ -161,6 +161,8 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Add an Edit button for each question.
 - Add delete or archive behavior with confirmation.
 - Build a question form with subject, grade, standard, prompt, type, choices, correct answer, alternate answers, and explanation.
+- Add a subject dropdown to the Add/Edit Question form so admins can choose the subject before selecting grade and standard.
+- Filter the grade and standard dropdowns in the question form based on the selected subject.
 - Validate required fields before saving.
 - Save locally first, then connect to the database later.
 - Added a shared local `QuestionStore` for the current app session.
@@ -168,6 +170,8 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Replaced the admin Questions placeholder with a real question management screen.
 - Added search plus filters for subject, grade, standard, question type, and active/archive status.
 - Added an Add Question form for multiple-choice and input-answer questions.
+- Added a clear Subject dropdown to the Add/Edit Question form.
+- Filtered the question form's Grade and Standard choices based on the selected subject.
 - Added edit support by tapping a question or using the edit swipe action.
 - Added archive support with confirmation so archived questions no longer appear in regular-user generation.
 - Added validation for required prompt, explanation, answers, and multiple-choice choices.
@@ -175,18 +179,35 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** admins can create, edit, archive, and review practice questions from inside the app.
 
-## 10. Build Admin Standards Management `[ ]`
+## 10. Build Admin Standards Management `[x]`
 
 - Create a standards management page.
 - Let admins view subjects, grades, and standards.
 - Add an Add Standard button.
+- When admin taps Add Standard, open a form to add a new standard with code, name, subject, grade, and description.
+- Support standards such as `6.G.1: Basic concepts of geometry`.
 - Add edit behavior for existing standards.
+- Add a subjects management area inside the admin Standards page.
+- Add an Add Subject button.
+- When admin taps Add Subject, open a form to add a new subject.
+- Support subjects such as Science, ELA, Math, and future subjects.
+- Make newly added subjects available when creating or editing standards.
 - Store standard code, standard name, subject, grade, and full description.
+- Store subject name and active/archive status.
 - Make sure the regular-user Standard dropdown uses the same standards data.
+- Make sure the regular-user Subject dropdown uses the same subjects data.
+- Added a shared local `StandardStore` for subjects, grades, and standards.
+- Connected regular-user Subject and Standard dropdowns to the shared standard store.
+- Replaced the admin Standards placeholder with a real standards management screen.
+- Added subject list, Add Subject form, Edit Subject flow, and subject archive action.
+- Added standards list, Add Standard form, Edit Standard flow, and standard archive action.
+- Added validation for required subject name, standard code, standard name, and standard description.
+- Connected the Admin Add/Edit Question form to the shared standard store.
+- Verified the app builds successfully after the admin standards management update.
 
-**Done when:** admins can manage the standards that appear in the regular-user dropdowns.
+**Done when:** admins can manage the subjects and standards that appear in the regular-user dropdowns.
 
-## 11. Build Feedback Flow `[ ]`
+## 11. Build Feedback Flow `[x]`
 
 - Add a Send Feedback button below generated questions.
 - Let regular users submit a short message about a question.
@@ -194,16 +215,32 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Create an admin Feedback page.
 - Show feedback status as New, Reviewed, or Resolved.
 - Let admins update feedback status.
+- Added a shared local `FeedbackStore` for feedback submitted during the current app session.
+- Added a Send Feedback button below generated questions.
+- Added a feedback form that attaches the message to the current user and question.
+- Added validation so empty feedback messages cannot be submitted.
+- Replaced the admin Feedback placeholder with a real feedback review page.
+- Added admin status filtering for All, New, Reviewed, and Resolved feedback.
+- Added segmented status controls so admins can update feedback status.
+- Added a dashboard feedback metric showing total feedback and new reports.
+- Verified the app builds successfully after the feedback flow update.
 
 **Done when:** students can report confusing or incorrect questions, and admins can review those reports.
 
-## 12. Track Users and Answer Attempts `[ ]`
+## 12. Track Users and Answer Attempts `[x]`
 
 - Save each answer attempt with user, question, selected or typed answer, correctness, and date.
 - Track attempts by subject, grade, standard, and question.
 - Create an Admin Users page.
 - Show each user's role, last active date, questions attempted, and accuracy summary.
 - Prepare this data for analytics screens.
+- Added a shared local `AnswerAttemptStore` for the current app session.
+- Recorded an answer attempt each time a regular user checks an answer.
+- Saved user, question, submitted answer, correctness, subject, grade, standard, and date for each attempt.
+- Added an Admin Users page with user role, email, attempt count, accuracy, and last activity.
+- Added user detail pages with summary metrics and recent answer attempts.
+- Added dashboard attempt count under the Users metric.
+- Verified the app builds successfully after the answer-attempt tracking update.
 
 **Done when:** the app records student practice activity and admins can review basic user progress.
 
