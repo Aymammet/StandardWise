@@ -379,13 +379,16 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the main student and admin workflows can be tested reliably after each major build step.
 
-## 20. Git and Release Workflow `[~]`
+## 20. Git and Release Workflow `[x]`
 
 - Keep the local repo connected to `git@github.com:Aymammet/StandardWise.git`.
 - Commit each meaningful feature step with a clear message.
 - Push completed work to GitHub.
 - Avoid committing local Xcode user-state files.
 - Use `plan.md` to decide the next feature before coding.
+- Verified the working tree is clean after the latest push.
+- Confirmed latest pushed commit: `88c8c38 Add QA docs and improve staging login setup`.
+- Confirmed the repo is connected to `git@github.com:Aymammet/StandardWise.git`.
 
 **Done when:** the GitHub repo always reflects the latest stable local work.
 
@@ -433,4 +436,4 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 ## Immediate Next Step
 
-- Start milestone 19: testing and quality checks.
+- Continue milestone 21: Firebase production data migration.
