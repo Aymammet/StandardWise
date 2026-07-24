@@ -1,6 +1,4 @@
-import CryptoKit
 import FirebaseAuth
-import FirebaseFirestore
 import Foundation
 
 enum LocalAuthService {
@@ -89,7 +87,14 @@ enum LocalAuthService {
             return credential.user
         }
 
-        guard try await stagingUsernameExists(email: normalizedEmail) else {
+        let usernameExists: Bool
+        if adminEmails.contains(normalizedEmail) {
+            usernameExists = true
+        } else {
+            usernameExists = try await FirebaseUserService.usernameExists(email: normalizedEmail)
+        }
+
+        guard usernameExists else {
             throw AuthServiceError.noUsernameFound
         }
 
@@ -112,7 +117,12 @@ enum LocalAuthService {
             throw error
         }
 
-        return userProfile(from: result.user, fallbackEmail: normalizedEmail)
+        let defaultRole: UserRole = adminEmails.contains(normalizedEmail) ? .admin : .regular
+        return try await FirebaseUserService.userProfile(
+            from: result.user,
+            fallbackEmail: normalizedEmail,
+            defaultRole: defaultRole
+        )
     }
 
     static func logout() throws {
@@ -137,27 +147,6 @@ enum LocalAuthService {
         }
     }
 
-    private static func stagingUsernameExists(email: String) async throws -> Bool {
-        if adminEmails.contains(email) {
-            return true
-        }
-
-        return try await withCheckedThrowingContinuation { continuation in
-            Firestore.firestore()
-                .collection("users")
-                .whereField("emailLowercase", isEqualTo: email)
-                .limit(to: 1)
-                .getDocuments { snapshot, error in
-                    if let error {
-                        continuation.resume(throwing: error)
-                        return
-                    }
-
-                    continuation.resume(returning: snapshot?.documents.isEmpty == false)
-                }
-        }
-    }
-
     private static func isMissingUsernameError(_ error: Error) -> Bool {
         AuthErrorCode(rawValue: (error as NSError).code)?.code == .userNotFound
     }
@@ -172,50 +161,6 @@ enum LocalAuthService {
         }
 
         return code == .invalidCredential
-    }
-
-    private static func userProfile(from firebaseUser: FirebaseAuth.User, fallbackEmail: String) -> StandardWiseUser {
-        let email = (firebaseUser.email ?? fallbackEmail).lowercased()
-        let role: UserRole = adminEmails.contains(email) ? .admin : .regular
-        let displayName = firebaseUser.displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let name = displayName?.isEmpty == false ? displayName! : defaultName(for: email, role: role)
-
-        return StandardWiseUser(
-            id: stableUUID(from: firebaseUser.uid),
-            name: name,
-            email: email,
-            role: role,
-            createdAt: firebaseUser.metadata.creationDate ?? Date(),
-            lastActiveAt: firebaseUser.metadata.lastSignInDate
-        )
-    }
-
-    private static func defaultName(for email: String, role: UserRole) -> String {
-        if role == .admin {
-            return "Admin User"
-        }
-
-        let localPart = email.split(separator: "@").first.map(String.init) ?? "Student"
-        return localPart
-            .replacingOccurrences(of: ".", with: " ")
-            .replacingOccurrences(of: "_", with: " ")
-            .capitalized
-    }
-
-    private static func stableUUID(from value: String) -> UUID {
-        let digest = SHA256.hash(data: Data(value.utf8))
-        var bytes = Array(digest.prefix(16))
-        bytes[6] = (bytes[6] & 0x0F) | 0x50
-        bytes[8] = (bytes[8] & 0x3F) | 0x80
-
-        let uuid = (
-            bytes[0], bytes[1], bytes[2], bytes[3],
-            bytes[4], bytes[5], bytes[6], bytes[7],
-            bytes[8], bytes[9], bytes[10], bytes[11],
-            bytes[12], bytes[13], bytes[14], bytes[15]
-        )
-
-        return UUID(uuid: uuid)
     }
 }
 

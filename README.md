@@ -41,7 +41,7 @@ Staging currently maps `admin@standardwise.app` to the admin role. Other Firebas
 
 ## Firebase and Data
 
-Firebase is connected for staging authentication. The app includes:
+Firebase is connected for staging authentication and the first Firestore user/profile layer. The app includes:
 
 - `FirebaseCore`
 - `FirebaseAuth`
@@ -51,7 +51,9 @@ Firebase is connected for staging authentication. The app includes:
 Current staging behavior:
 
 - Login uses Firebase Authentication.
-- Username existence checking is being moved toward a Firestore `users` collection.
+- Regular-user username existence is checked against the Firestore `users` collection before password sign-in.
+- After successful login, the app reads the user's Firestore profile for name, role, created date, and last active date.
+- The admin email `admin@standardwise.app` still has a temporary bridge so the first admin login can create or update its Firestore profile.
 - Subjects, standards, questions, feedback, answer attempts, and analytics still use local app data.
 
 Planned Firestore collections:
@@ -63,14 +65,18 @@ Planned Firestore collections:
 - `answerAttempts`
 - `feedback`
 
-For future staging users, each Firebase Auth user should also have a matching Firestore user document. The expected user lookup field is `emailLowercase`, for example:
+For staging users, each Firebase Auth user should also have a matching Firestore user document in `users`. The document ID can be the lowercased email address, and the expected lookup field is `emailLowercase`, for example:
 
 ```json
 {
+  "id": "stable-user-uuid",
+  "firebaseUID": "firebase-auth-uid",
+  "name": "Student User",
   "email": "student@standardwise.app",
   "emailLowercase": "student@standardwise.app",
   "role": "regular",
-  "name": "Student User"
+  "createdAt": "Firestore timestamp",
+  "lastActiveAt": "Firestore timestamp"
 }
 ```
 

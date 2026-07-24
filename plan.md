@@ -387,7 +387,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Avoid committing local Xcode user-state files.
 - Use `plan.md` to decide the next feature before coding.
 - Verified the working tree is clean after the latest push.
-- Confirmed latest pushed commit: `88c8c38 Add QA docs and improve staging login setup`.
+- Confirmed latest pushed commit: `3237646 Mark release workflow complete`.
 - Confirmed the repo is connected to `git@github.com:Aymammet/StandardWise.git`.
 
 **Done when:** the GitHub repo always reflects the latest stable local work.
@@ -417,6 +417,12 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Local mode uses sample login credentials for simulator testing without Firebase.
 - Staging mode uses Firebase email/password authentication.
 - Current Staging behavior: login uses Firebase Auth, but questions, subjects, standards, feedback, answer attempts, and analytics still use local app data.
+- Added a Firebase user/profile service for the Firestore `users` collection.
+- Staging login now checks Firestore user records for regular-user username existence before password sign-in.
+- Staging login now reads the authenticated user's Firestore profile for name, role, created date, and last active date.
+- Staging login now creates or updates a Firestore `users` document after successful admin sign-in, so the admin profile can be seeded from the app.
+- Regular staging users should have a matching Firestore `users` document before login; the temporary admin bridge remains only to prevent admin lockout during setup.
+- Verified both `StandardWise Staging` and `StandardWise Local` build successfully after adding the Firestore user/profile layer.
 - Next Staging database goal: move questions, subjects, standards, feedback, answer attempts, and analytics data to Firestore so Staging uses shared cloud data.
 - Improved Firebase login error messages for disabled sign-in methods, disabled users, rate limits, and network issues.
 
