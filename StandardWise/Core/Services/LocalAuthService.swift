@@ -91,7 +91,7 @@ enum LocalAuthService {
         if adminEmails.contains(normalizedEmail) {
             usernameExists = true
         } else {
-            usernameExists = try await FirebaseUserService.usernameExists(email: normalizedEmail)
+            usernameExists = (try? await FirebaseUserService.usernameExists(email: normalizedEmail)) ?? true
         }
 
         guard usernameExists else {
@@ -125,6 +125,54 @@ enum LocalAuthService {
         )
     }
 
+    static func register(email: String, password: String) async throws -> StandardWiseUser {
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        guard authMode == .staging else {
+            throw AuthServiceError.registrationUnavailable
+        }
+
+        let result: AuthDataResult
+        do {
+            result = try await createUser(email: normalizedEmail, password: password)
+        } catch {
+            if isEmailAlreadyInUseError(error) {
+                throw AuthServiceError.accountAlreadyExists
+            }
+
+            if isWeakPasswordError(error) {
+                throw AuthServiceError.weakPassword
+            }
+
+            throw error
+        }
+
+        return try await FirebaseUserService.userProfile(
+            from: result.user,
+            fallbackEmail: normalizedEmail,
+            defaultRole: .regular
+        )
+    }
+
+    static func sendPasswordReset(email: String) async throws {
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        guard authMode == .staging else {
+            throw AuthServiceError.passwordResetUnavailable
+        }
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            Auth.auth().sendPasswordReset(withEmail: normalizedEmail) { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                continuation.resume()
+            }
+        }
+    }
+
     static func logout() throws {
         try Auth.auth().signOut()
     }
@@ -132,6 +180,24 @@ enum LocalAuthService {
     private static func signIn(email: String, password: String) async throws -> AuthDataResult {
         try await withCheckedThrowingContinuation { continuation in
             Auth.auth().signIn(withEmail: email, password: password) { result, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard let result else {
+                    continuation.resume(throwing: AuthServiceError.missingUser)
+                    return
+                }
+
+                continuation.resume(returning: result)
+            }
+        }
+    }
+
+    private static func createUser(email: String, password: String) async throws -> AuthDataResult {
+        try await withCheckedThrowingContinuation { continuation in
+            Auth.auth().createUser(withEmail: email, password: password) { result, error in
                 if let error {
                     continuation.resume(throwing: error)
                     return
@@ -162,6 +228,14 @@ enum LocalAuthService {
 
         return code == .invalidCredential
     }
+
+    private static func isEmailAlreadyInUseError(_ error: Error) -> Bool {
+        AuthErrorCode(rawValue: (error as NSError).code)?.code == .emailAlreadyInUse
+    }
+
+    private static func isWeakPasswordError(_ error: Error) -> Bool {
+        AuthErrorCode(rawValue: (error as NSError).code)?.code == .weakPassword
+    }
 }
 
 enum AuthServiceError: Error {
@@ -169,14 +243,8 @@ enum AuthServiceError: Error {
     case wrongPassword
     case invalidCredentials
     case missingUser
-}
-
-private enum StandardWiseAuthMode: String {
-    case local
-    case staging
-
-    static var current: StandardWiseAuthMode {
-        let value = ProcessInfo.processInfo.environment["STANDARDWISE_AUTH_MODE"]?.lowercased()
-        return StandardWiseAuthMode(rawValue: value ?? "") ?? .staging
-    }
+    case registrationUnavailable
+    case passwordResetUnavailable
+    case accountAlreadyExists
+    case weakPassword
 }

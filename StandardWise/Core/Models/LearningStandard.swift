@@ -38,10 +38,16 @@ struct LearningStandard: Identifiable, Codable, Equatable {
     }
 }
 
+@MainActor
 final class StandardStore: ObservableObject {
     @Published private(set) var subjects: [AcademicSubject] {
         didSet {
             LocalPersistence.save(subjects, forKey: subjectsStorageKey)
+        }
+    }
+    @Published private(set) var grades: [GradeLevel] {
+        didSet {
+            LocalPersistence.save(grades, forKey: gradesStorageKey)
         }
     }
     @Published private(set) var standards: [LearningStandard] {
@@ -49,10 +55,12 @@ final class StandardStore: ObservableObject {
             LocalPersistence.save(standards, forKey: standardsStorageKey)
         }
     }
+    @Published private(set) var syncStatusMessage: String?
 
-    let grades: [GradeLevel]
     private let subjectsStorageKey = "standardwise.subjects"
+    private let gradesStorageKey = "standardwise.grades"
     private let standardsStorageKey = "standardwise.standards"
+    private let usesFirebaseStandards = StandardWiseAuthMode.current == .staging
 
     init(
         subjects: [AcademicSubject] = StandardWiseSampleData.subjects,
@@ -66,13 +74,29 @@ final class StandardStore: ObservableObject {
             LocalPersistence.save(subjects, forKey: subjectsStorageKey)
         }
 
-        self.grades = grades
+        if let savedGrades = LocalPersistence.load([GradeLevel].self, forKey: gradesStorageKey) {
+            self.grades = savedGrades
+        } else {
+            self.grades = grades
+            LocalPersistence.save(grades, forKey: gradesStorageKey)
+        }
 
         if let savedStandards = LocalPersistence.load([LearningStandard].self, forKey: standardsStorageKey) {
             self.standards = savedStandards
         } else {
             self.standards = standards
             LocalPersistence.save(standards, forKey: standardsStorageKey)
+        }
+
+        if usesFirebaseStandards {
+            syncStatusMessage = "Syncing subjects and standards from Firebase..."
+            Task {
+                await loadFirebaseStandards(
+                    fallbackSubjects: subjects,
+                    fallbackGrades: grades,
+                    fallbackStandards: standards
+                )
+            }
         }
     }
 
@@ -90,6 +114,8 @@ final class StandardStore: ObservableObject {
         } else {
             subjects.append(subject)
         }
+
+        syncSubjectToFirebase(subject)
     }
 
     func archiveSubject(_ subject: AcademicSubject) {
@@ -108,6 +134,8 @@ final class StandardStore: ObservableObject {
         } else {
             standards.insert(standard, at: 0)
         }
+
+        syncStandardToFirebase(standard)
     }
 
     func archiveStandard(_ standard: LearningStandard) {
@@ -124,6 +152,61 @@ final class StandardStore: ObservableObject {
                 isActive: false
             )
         )
+    }
+
+    func refreshFromFirebaseIfNeeded() async {
+        guard usesFirebaseStandards else { return }
+        await loadFirebaseStandards(
+            fallbackSubjects: subjects,
+            fallbackGrades: grades,
+            fallbackStandards: standards
+        )
+    }
+
+    private func loadFirebaseStandards(
+        fallbackSubjects: [AcademicSubject],
+        fallbackGrades: [GradeLevel],
+        fallbackStandards: [LearningStandard]
+    ) async {
+        do {
+            let firebaseData = try await FirebaseStandardsService.loadStandardsData(
+                fallbackSubjects: fallbackSubjects,
+                fallbackGrades: fallbackGrades,
+                fallbackStandards: fallbackStandards
+            )
+            subjects = firebaseData.subjects
+            grades = firebaseData.grades
+            standards = firebaseData.standards
+            syncStatusMessage = "Subjects and standards are synced with Firebase."
+        } catch {
+            syncStatusMessage = "Using local subjects and standards because Firebase is unavailable."
+        }
+    }
+
+    private func syncSubjectToFirebase(_ subject: AcademicSubject) {
+        guard usesFirebaseStandards else { return }
+
+        Task {
+            do {
+                try await FirebaseStandardsService.saveSubject(subject)
+                syncStatusMessage = "Subject saved to Firebase."
+            } catch {
+                syncStatusMessage = "Subject saved locally. Firebase sync failed."
+            }
+        }
+    }
+
+    private func syncStandardToFirebase(_ standard: LearningStandard) {
+        guard usesFirebaseStandards else { return }
+
+        Task {
+            do {
+                try await FirebaseStandardsService.saveStandard(standard)
+                syncStatusMessage = "Standard saved to Firebase."
+            } catch {
+                syncStatusMessage = "Standard saved locally. Firebase sync failed."
+            }
+        }
     }
 }
 

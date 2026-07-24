@@ -34,14 +34,17 @@ struct AnswerAttempt: Identifiable, Codable, Equatable {
     }
 }
 
+@MainActor
 final class AnswerAttemptStore: ObservableObject {
     @Published private(set) var attempts: [AnswerAttempt] {
         didSet {
             LocalPersistence.save(attempts, forKey: storageKey)
         }
     }
+    @Published private(set) var syncStatusMessage: String?
 
     private let storageKey = "standardwise.answerAttempts"
+    private let usesFirebaseAttempts = StandardWiseAuthMode.current == .staging
 
     init(attempts: [AnswerAttempt] = []) {
         if let savedAttempts = LocalPersistence.load([AnswerAttempt].self, forKey: storageKey) {
@@ -50,13 +53,51 @@ final class AnswerAttemptStore: ObservableObject {
             self.attempts = attempts
             LocalPersistence.save(attempts, forKey: storageKey)
         }
+
+        if usesFirebaseAttempts {
+            syncStatusMessage = "Syncing answer attempts from Firebase..."
+            Task {
+                await loadFirebaseAttempts()
+            }
+        }
     }
 
     func record(_ attempt: AnswerAttempt) {
         attempts.insert(attempt, at: 0)
+        syncAttemptToFirebase(attempt)
     }
 
     func attempts(for userID: UUID) -> [AnswerAttempt] {
         attempts.filter { $0.userID == userID }
+    }
+
+    func refreshFromFirebaseIfNeeded() async {
+        guard usesFirebaseAttempts else { return }
+        await loadFirebaseAttempts()
+    }
+
+    private func loadFirebaseAttempts() async {
+        do {
+            let firebaseAttempts = try await FirebaseAnswerAttemptService.loadAttempts()
+            if !firebaseAttempts.isEmpty {
+                attempts = firebaseAttempts
+            }
+            syncStatusMessage = "Answer attempts are synced with Firebase."
+        } catch {
+            syncStatusMessage = "Using local answer attempts because Firebase is unavailable."
+        }
+    }
+
+    private func syncAttemptToFirebase(_ attempt: AnswerAttempt) {
+        guard usesFirebaseAttempts else { return }
+
+        Task {
+            do {
+                try await FirebaseAnswerAttemptService.saveAttempt(attempt)
+                syncStatusMessage = "Answer attempt saved to Firebase."
+            } catch {
+                syncStatusMessage = "Answer attempt saved locally. Firebase sync failed."
+            }
+        }
     }
 }

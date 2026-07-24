@@ -9,30 +9,42 @@ struct RootView: View {
 
     var body: some View {
         if let user = session.currentUser {
-            switch user.role {
-            case .admin:
-                AdminDashboardView(
-                    user: user,
-                    questionStore: questionStore,
-                    standardStore: standardStore,
-                    feedbackStore: feedbackStore,
-                    answerAttemptStore: answerAttemptStore
-                ) {
-                    session.logout()
+            Group {
+                switch user.role {
+                case .admin:
+                    AdminDashboardView(
+                        user: user,
+                        questionStore: questionStore,
+                        standardStore: standardStore,
+                        feedbackStore: feedbackStore,
+                        answerAttemptStore: answerAttemptStore
+                    ) {
+                        session.logout()
+                    }
+                case .regular:
+                    PracticeView(
+                        user: user,
+                        questionStore: questionStore,
+                        standardStore: standardStore,
+                        feedbackStore: feedbackStore,
+                        answerAttemptStore: answerAttemptStore
+                    ) {
+                        session.logout()
+                    }
                 }
-            case .regular:
-                PracticeView(
-                    user: user,
-                    questionStore: questionStore,
-                    standardStore: standardStore,
-                    feedbackStore: feedbackStore,
-                    answerAttemptStore: answerAttemptStore
-                ) {
-                    session.logout()
-                }
+            }            
+            .task(id: user.id) {
+                await refreshFirebaseDataAfterLogin()
             }
         } else {
             LoginView(session: session)
         }
+    }
+
+    private func refreshFirebaseDataAfterLogin() async {
+        await standardStore.refreshFromFirebaseIfNeeded()
+        await questionStore.refreshFromFirebaseIfNeeded()
+        await feedbackStore.refreshFromFirebaseIfNeeded()
+        await answerAttemptStore.refreshFromFirebaseIfNeeded()
     }
 }

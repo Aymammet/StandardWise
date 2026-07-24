@@ -4,6 +4,24 @@ import FirebaseFirestore
 import Foundation
 
 enum FirebaseUserService {
+    static func loadUsers() async throws -> [StandardWiseUser] {
+        let snapshot = try await Firestore.firestore()
+            .collection("users")
+            .getDocuments()
+
+        return snapshot.documents
+            .compactMap { document in
+                standardWiseUser(
+                    from: document,
+                    fallbackUID: (document.data()["firebaseUID"] as? String) ?? document.documentID,
+                    fallbackEmail: document.documentID
+                )
+            }
+            .sorted { first, second in
+                first.email.localizedCaseInsensitiveCompare(second.email) == .orderedAscending
+            }
+    }
+
     static func usernameExists(email: String) async throws -> Bool {
         try await userDocument(forEmail: email) != nil
     }
@@ -14,24 +32,44 @@ enum FirebaseUserService {
         defaultRole: UserRole
     ) async throws -> StandardWiseUser {
         let email = (firebaseUser.email ?? fallbackEmail).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let fallbackProfile = fallbackUserProfile(
+            from: firebaseUser,
+            email: email,
+            defaultRole: defaultRole
+        )
 
-        if let document = try await userDocument(forEmail: email),
-           let profile = standardWiseUser(from: document, fallbackUID: firebaseUser.uid, fallbackEmail: email) {
-            try await updateLastActive(email: email, firebaseUser: firebaseUser)
-            return profile
+        do {
+            if let document = try await userDocument(forEmail: email),
+               let profile = standardWiseUser(from: document, fallbackUID: firebaseUser.uid, fallbackEmail: email) {
+                try? await updateLastActive(email: email, firebaseUser: firebaseUser)
+                return profile
+            }
+
+            try await save(fallbackProfile, firebaseUID: firebaseUser.uid)
+        } catch {
+            return fallbackProfile
         }
 
-        let profile = StandardWiseUser(
+        return fallbackProfile
+    }
+
+    private static func fallbackUserProfile(
+        from firebaseUser: FirebaseAuth.User,
+        email: String,
+        defaultRole: UserRole
+    ) -> StandardWiseUser {
+        StandardWiseUser(
             id: stableUUID(from: firebaseUser.uid),
-            name: defaultName(for: email, role: defaultRole, displayName: firebaseUser.displayName),
+            name: defaultName(
+                for: email,
+                role: defaultRole,
+                displayName: firebaseUser.displayName
+            ),
             email: email,
             role: defaultRole,
             createdAt: firebaseUser.metadata.creationDate ?? Date(),
             lastActiveAt: firebaseUser.metadata.lastSignInDate
         )
-
-        try await save(profile, firebaseUID: firebaseUser.uid)
-        return profile
     }
 
     private static func userDocument(forEmail email: String) async throws -> DocumentSnapshot? {

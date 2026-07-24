@@ -131,7 +131,44 @@ struct PracticeView: View {
                         .accessibilityHint("Logs out and returns to the login screen.")
                 }
             }
+            .onChange(of: standardStore.subjects) { _, _ in
+                alignSelectionWithAvailableStandards()
+            }
+            .onChange(of: standardStore.grades) { _, _ in
+                alignSelectionWithAvailableStandards()
+            }
+            .onChange(of: standardStore.standards) { _, _ in
+                alignSelectionWithAvailableStandards()
+            }
         }
+    }
+
+    private func alignSelectionWithAvailableStandards() {
+        if !subjects.contains(selectedSubject) {
+            selectedSubject = subjects.first ?? ""
+        }
+
+        if !grades.contains(selectedGrade) {
+            selectedGrade = grades.first ?? ""
+        }
+
+        if filteredStandards.contains(where: { $0.code == selectedStandardCode }) {
+            return
+        }
+
+        if let matchingStandard = standards.first(where: { $0.subjectName == selectedSubject }) {
+            selectedGrade = matchingStandard.gradeName
+            selectedStandardCode = matchingStandard.code
+        } else if let firstStandard = standards.first {
+            selectedSubject = firstStandard.subjectName
+            selectedGrade = firstStandard.gradeName
+            selectedStandardCode = firstStandard.code
+        } else {
+            selectedStandardCode = ""
+        }
+
+        currentProblem = nil
+        emptyMessage = "Choose a subject, grade, and standard, then tap Generate Question."
     }
 }
 

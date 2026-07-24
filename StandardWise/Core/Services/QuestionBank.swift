@@ -95,6 +95,7 @@ enum QuestionBank {
     ) -> [Question] {
         sourceQuestions.filter { question in
             let standard = standards.first { $0.id == question.standardID }
+                ?? standards.first { $0.code == question.standardCode }
 
             return question.isActive
                 && question.standardCode == standardCode
@@ -164,14 +165,17 @@ enum QuestionBank {
 
 }
 
+@MainActor
 final class QuestionStore: ObservableObject {
     @Published private(set) var questions: [Question] {
         didSet {
             LocalPersistence.save(questions, forKey: storageKey)
         }
     }
+    @Published private(set) var syncStatusMessage: String?
 
     private let storageKey = "standardwise.questions"
+    private let usesFirebaseQuestions = StandardWiseAuthMode.current == .staging
 
     init(questions: [Question] = QuestionBank.sampleQuestions) {
         if let savedQuestions = LocalPersistence.load([Question].self, forKey: storageKey) {
@@ -179,6 +183,13 @@ final class QuestionStore: ObservableObject {
         } else {
             self.questions = questions
             LocalPersistence.save(questions, forKey: storageKey)
+        }
+
+        if usesFirebaseQuestions {
+            syncStatusMessage = "Syncing questions from Firebase..."
+            Task {
+                await loadFirebaseQuestions(fallbackQuestions: questions)
+            }
         }
     }
 
@@ -192,6 +203,8 @@ final class QuestionStore: ObservableObject {
         } else {
             questions.insert(question, at: 0)
         }
+
+        syncQuestionToFirebase(question)
     }
 
     func archive(_ question: Question) {
@@ -215,5 +228,34 @@ final class QuestionStore: ObservableObject {
         )
 
         save(archivedQuestion)
+    }
+
+    func refreshFromFirebaseIfNeeded() async {
+        guard usesFirebaseQuestions else { return }
+        await loadFirebaseQuestions(fallbackQuestions: questions)
+    }
+
+    private func loadFirebaseQuestions(fallbackQuestions: [Question]) async {
+        do {
+            questions = try await FirebaseQuestionsService.loadQuestions(
+                fallbackQuestions: fallbackQuestions
+            )
+            syncStatusMessage = "Questions are synced with Firebase."
+        } catch {
+            syncStatusMessage = "Using local questions because Firebase is unavailable."
+        }
+    }
+
+    private func syncQuestionToFirebase(_ question: Question) {
+        guard usesFirebaseQuestions else { return }
+
+        Task {
+            do {
+                try await FirebaseQuestionsService.saveQuestion(question)
+                syncStatusMessage = "Question saved to Firebase."
+            } catch {
+                syncStatusMessage = "Question saved locally. Firebase sync failed."
+            }
+        }
     }
 }

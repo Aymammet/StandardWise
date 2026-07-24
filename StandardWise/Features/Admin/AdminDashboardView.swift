@@ -8,7 +8,8 @@ struct AdminDashboardView: View {
     @ObservedObject var answerAttemptStore: AnswerAttemptStore
     let onLogout: () -> Void
 
-    private let users = LocalAuthService.sampleUsers
+    @State private var users = LocalAuthService.sampleUsers
+    @State private var userSyncStatusMessage: String?
 
     private var multipleChoiceCount: Int {
         questionStore.activeQuestions.filter { $0.type == .multipleChoice }.count
@@ -80,6 +81,7 @@ struct AdminDashboardView: View {
                                 systemImage: "person.2",
                                 destination: AdminUsersView(
                                     users: users,
+                                    userSyncStatusMessage: userSyncStatusMessage,
                                     answerAttemptStore: answerAttemptStore
                                 )
                             )
@@ -112,6 +114,9 @@ struct AdminDashboardView: View {
             .toolbar {
                 Button("Logout", action: onLogout)
             }
+            .task {
+                await loadFirebaseUsersIfNeeded()
+            }
         }
     }
 
@@ -123,6 +128,22 @@ struct AdminDashboardView: View {
 
             Text("Manage practice content, review student feedback, and track progress from one place.")
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    private func loadFirebaseUsersIfNeeded() async {
+        guard StandardWiseAuthMode.current == .staging else { return }
+
+        userSyncStatusMessage = "Syncing users from Firebase..."
+
+        do {
+            let firebaseUsers = try await FirebaseUserService.loadUsers()
+            if !firebaseUsers.isEmpty {
+                users = firebaseUsers
+            }
+            userSyncStatusMessage = "Users are synced with Firebase."
+        } catch {
+            userSyncStatusMessage = "Using local users because Firebase users are unavailable."
         }
     }
 }
@@ -231,6 +252,14 @@ private struct AdminQuestionManagementView: View {
 
     var body: some View {
         List {
+            if let syncStatusMessage = questionStore.syncStatusMessage {
+                Section {
+                    Text(syncStatusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     TextField("Search questions", text: $searchText)
@@ -690,6 +719,14 @@ private struct AdminStandardsManagementView: View {
 
     var body: some View {
         List {
+            if let syncStatusMessage = standardStore.syncStatusMessage {
+                Section {
+                    Text(syncStatusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             subjectsSection
             standardsSection
         }
@@ -1110,6 +1147,14 @@ private struct AdminFeedbackView: View {
 
     var body: some View {
         List {
+            if let syncStatusMessage = feedbackStore.syncStatusMessage {
+                Section {
+                    Text(syncStatusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Section {
                 Menu {
                     ForEach(["All"] + FeedbackStatus.allCases.map(\.displayName), id: \.self) { option in
@@ -1151,6 +1196,19 @@ private struct AdminFeedbackView: View {
             }
         }
         .navigationTitle("Feedback")
+        .toolbar {
+            Button {
+                Task {
+                    await feedbackStore.refreshFromFirebaseIfNeeded()
+                }
+            } label: {
+                Label("Refresh", systemImage: "arrow.clockwise")
+            }
+            .accessibilityHint("Loads the latest feedback from Firebase.")
+        }
+        .task {
+            await feedbackStore.refreshFromFirebaseIfNeeded()
+        }
     }
 
     private func question(for feedback: QuestionFeedback) -> Question? {
@@ -1227,10 +1285,27 @@ private struct AdminFeedbackRow: View {
 
 private struct AdminUsersView: View {
     let users: [StandardWiseUser]
+    let userSyncStatusMessage: String?
     @ObservedObject var answerAttemptStore: AnswerAttemptStore
 
     var body: some View {
         List {
+            if let userSyncStatusMessage {
+                Section {
+                    Text(userSyncStatusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if let syncStatusMessage = answerAttemptStore.syncStatusMessage {
+                Section {
+                    Text(syncStatusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Section("\(users.count) Users") {
                 ForEach(users) { user in
                     NavigationLink {
@@ -1406,6 +1481,14 @@ private struct AdminAnalyticsView: View {
 
     var body: some View {
         List {
+            if let syncStatusMessage = answerAttemptStore.syncStatusMessage {
+                Section {
+                    Text(syncStatusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Section("Overview") {
                 AnalyticsSummaryGrid(
                     attempts: attempts.count,

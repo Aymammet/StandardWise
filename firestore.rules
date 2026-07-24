@@ -1,0 +1,245 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    function authEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function userPath(email) {
+      return /databases/$(database)/documents/users/$(email);
+    }
+
+    function hasCurrentUserProfile() {
+      return signedIn() && exists(userPath(authEmail()));
+    }
+
+    function currentUserID() {
+      return get(userPath(authEmail())).data.id;
+    }
+
+    function isBootstrapAdmin() {
+      return signedIn() && authEmail() == 'admin@standardwise.app';
+    }
+
+    function isProfileAdmin() {
+      return hasCurrentUserProfile()
+        && get(userPath(authEmail())).data.role == 'admin';
+    }
+
+    function isAdmin() {
+      return isBootstrapAdmin() || isProfileAdmin();
+    }
+
+    function isSelfUser(userID) {
+      return signedIn() && userID == authEmail();
+    }
+
+    function isUUID(value) {
+      return value is string
+        && value.matches('[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
+    }
+
+    function hasOnlyFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function hasAllFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function validUserProfile() {
+      return hasOnlyFields([
+          'id',
+          'firebaseUID',
+          'name',
+          'email',
+          'emailLowercase',
+          'role',
+          'createdAt',
+          'lastActiveAt',
+          'updatedAt'
+        ])
+        && hasAllFields(['id', 'firebaseUID', 'name', 'email', 'emailLowercase', 'role'])
+        && isUUID(request.resource.data.id)
+        && request.resource.data.firebaseUID == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.emailLowercase == request.resource.data.email.lower()
+        && request.resource.data.role in ['admin', 'regular'];
+    }
+
+    function validSubject() {
+      return hasOnlyFields(['id', 'name', 'isActive', 'updatedAt'])
+        && hasAllFields(['id', 'name', 'isActive'])
+        && isUUID(request.resource.data.id)
+        && request.resource.data.name is string
+        && request.resource.data.isActive is bool;
+    }
+
+    function validGrade() {
+      return hasOnlyFields(['id', 'name', 'sortOrder', 'updatedAt'])
+        && hasAllFields(['id', 'name'])
+        && isUUID(request.resource.data.id)
+        && request.resource.data.name is string;
+    }
+
+    function validStandard() {
+      return hasOnlyFields([
+          'id',
+          'subjectID',
+          'gradeID',
+          'subjectName',
+          'gradeName',
+          'code',
+          'name',
+          'description',
+          'isActive',
+          'updatedAt'
+        ])
+        && hasAllFields(['id', 'subjectID', 'gradeID', 'subjectName', 'gradeName', 'code', 'name', 'description', 'isActive'])
+        && isUUID(request.resource.data.id)
+        && isUUID(request.resource.data.subjectID)
+        && isUUID(request.resource.data.gradeID)
+        && request.resource.data.subjectName is string
+        && request.resource.data.gradeName is string
+        && request.resource.data.code is string
+        && request.resource.data.name is string
+        && request.resource.data.description is string
+        && request.resource.data.isActive is bool;
+    }
+
+    function validQuestion() {
+      return hasOnlyFields([
+          'id',
+          'subjectID',
+          'gradeID',
+          'standardID',
+          'standardCode',
+          'prompt',
+          'type',
+          'choices',
+          'correctAnswer',
+          'acceptedAlternateAnswers',
+          'explanation',
+          'difficulty',
+          'isActive',
+          'createdByAdminID',
+          'createdAt',
+          'updatedAt'
+        ])
+        && hasAllFields(['id', 'subjectID', 'gradeID', 'standardID', 'standardCode', 'prompt', 'type', 'choices', 'correctAnswer', 'acceptedAlternateAnswers', 'explanation', 'isActive', 'createdAt', 'updatedAt'])
+        && isUUID(request.resource.data.id)
+        && isUUID(request.resource.data.subjectID)
+        && isUUID(request.resource.data.gradeID)
+        && isUUID(request.resource.data.standardID)
+        && request.resource.data.standardCode is string
+        && request.resource.data.prompt is string
+        && request.resource.data.type in ['multipleChoice', 'input']
+        && request.resource.data.choices is list
+        && request.resource.data.correctAnswer is string
+        && request.resource.data.acceptedAlternateAnswers is list
+        && request.resource.data.explanation is string
+        && request.resource.data.isActive is bool;
+    }
+
+    function validFeedback() {
+      return hasOnlyFields(['id', 'userID', 'questionID', 'message', 'status', 'createdAt', 'updatedAt'])
+        && hasAllFields(['id', 'userID', 'questionID', 'message', 'status', 'createdAt'])
+        && isUUID(request.resource.data.id)
+        && isUUID(request.resource.data.userID)
+        && isUUID(request.resource.data.questionID)
+        && request.resource.data.message is string
+        && request.resource.data.status in ['new', 'reviewed', 'resolved'];
+    }
+
+    function validAnswerAttempt() {
+      return hasOnlyFields(['id', 'userID', 'questionID', 'subjectName', 'gradeName', 'standardCode', 'submittedAnswer', 'isCorrect', 'createdAt'])
+        && hasAllFields(['id', 'userID', 'questionID', 'subjectName', 'gradeName', 'standardCode', 'submittedAnswer', 'isCorrect', 'createdAt'])
+        && isUUID(request.resource.data.id)
+        && isUUID(request.resource.data.userID)
+        && isUUID(request.resource.data.questionID)
+        && request.resource.data.subjectName is string
+        && request.resource.data.gradeName is string
+        && request.resource.data.standardCode is string
+        && request.resource.data.submittedAnswer is string
+        && request.resource.data.isCorrect is bool;
+    }
+
+    match /users/{userID} {
+      allow get: if isAdmin() || isSelfUser(userID);
+      allow list: if isAdmin();
+      allow create: if signedIn()
+        && isSelfUser(userID)
+        && validUserProfile()
+        && request.resource.data.emailLowercase == authEmail()
+        && (
+          request.resource.data.role == 'regular'
+          || (isBootstrapAdmin() && request.resource.data.role == 'admin')
+        );
+      allow update: if isAdmin()
+        || (
+          isSelfUser(userID)
+          && validUserProfile()
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.emailLowercase == resource.data.emailLowercase
+          && request.resource.data.role == resource.data.role
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /subjects/{subjectID} {
+      allow read: if signedIn();
+      allow write: if isAdmin() && validSubject();
+    }
+
+    match /grades/{gradeID} {
+      allow read: if signedIn();
+      allow write: if isAdmin() && validGrade();
+    }
+
+    match /standards/{standardID} {
+      allow read: if signedIn();
+      allow write: if isAdmin() && validStandard();
+    }
+
+    match /questions/{questionID} {
+      allow read: if signedIn();
+      allow write: if isAdmin() && validQuestion();
+    }
+
+    match /feedback/{feedbackID} {
+      allow get, list: if isAdmin();
+      allow create: if validFeedback()
+        && (
+          isAdmin()
+          || (
+            hasCurrentUserProfile()
+            && request.resource.data.userID == currentUserID()
+            && request.resource.data.status == 'new'
+          )
+        );
+      allow update, delete: if isAdmin() && validFeedback();
+    }
+
+    match /answerAttempts/{attemptID} {
+      allow get, list: if isAdmin();
+      allow create: if validAnswerAttempt()
+        && (
+          isAdmin()
+          || (
+            hasCurrentUserProfile()
+            && request.resource.data.userID == currentUserID()
+          )
+        );
+      allow update, delete: if isAdmin() && validAnswerAttempt();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

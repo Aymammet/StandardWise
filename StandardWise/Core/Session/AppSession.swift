@@ -5,7 +5,10 @@ import Foundation
 final class AppSession: ObservableObject {
     @Published private(set) var currentUser: StandardWiseUser?
     @Published var loginErrorMessage: String?
+    @Published var authInfoMessage: String?
     @Published var isLoggingIn = false
+    @Published var isRegistering = false
+    @Published var isSendingPasswordReset = false
 
     var isAuthenticated: Bool {
         currentUser != nil
@@ -14,6 +17,7 @@ final class AppSession: ObservableObject {
     func login(email: String, password: String) async {
         isLoggingIn = true
         loginErrorMessage = nil
+        authInfoMessage = nil
 
         do {
             let user = try await LocalAuthService.authenticate(email: email, password: password)
@@ -25,10 +29,41 @@ final class AppSession: ObservableObject {
         isLoggingIn = false
     }
 
+    func register(email: String, password: String) async {
+        isRegistering = true
+        loginErrorMessage = nil
+        authInfoMessage = nil
+
+        do {
+            let user = try await LocalAuthService.register(email: email, password: password)
+            currentUser = user
+        } catch {
+            loginErrorMessage = loginMessage(for: error)
+        }
+
+        isRegistering = false
+    }
+
+    func sendPasswordReset(email: String) async {
+        isSendingPasswordReset = true
+        loginErrorMessage = nil
+        authInfoMessage = nil
+
+        do {
+            try await LocalAuthService.sendPasswordReset(email: email)
+            authInfoMessage = "Password reset email sent. Please check your inbox."
+        } catch {
+            loginErrorMessage = loginMessage(for: error)
+        }
+
+        isSendingPasswordReset = false
+    }
+
     func logout() {
         try? LocalAuthService.logout()
         currentUser = nil
         loginErrorMessage = nil
+        authInfoMessage = nil
     }
 
     private func loginMessage(for error: Error) -> String {
@@ -42,6 +77,14 @@ final class AppSession: ObservableObject {
                 return "Wrong password."
             case .missingUser:
                 return "We could not find a signed-in user. Please try again."
+            case .registrationUnavailable:
+                return "Registration is available in Staging mode only."
+            case .passwordResetUnavailable:
+                return "Password reset is available in Staging mode only."
+            case .accountAlreadyExists:
+                return "An account already exists for this email."
+            case .weakPassword:
+                return "Password should be at least 6 characters."
             }
         }
 
@@ -62,6 +105,10 @@ final class AppSession: ObservableObject {
             return "No username exists."
         case .operationNotAllowed:
             return "Email/password login is not enabled in Firebase."
+        case .emailAlreadyInUse:
+            return "An account already exists for this email."
+        case .weakPassword:
+            return "Password should be at least 6 characters."
         case .userDisabled:
             return "This Firebase user account is disabled."
         case .tooManyRequests:

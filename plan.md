@@ -416,21 +416,57 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Added shared Xcode schemes for `StandardWise Local` and `StandardWise Staging`.
 - Local mode uses sample login credentials for simulator testing without Firebase.
 - Staging mode uses Firebase email/password authentication.
-- Current Staging behavior: login uses Firebase Auth, but questions, subjects, standards, feedback, answer attempts, and analytics still use local app data.
+- Current Staging behavior: login uses Firebase Auth; subjects, grades, standards, questions, feedback, and answer attempts sync with Firestore. Analytics are calculated in the app from synced answer attempts.
 - Added a Firebase user/profile service for the Firestore `users` collection.
 - Staging login now checks Firestore user records for regular-user username existence before password sign-in.
 - Staging login now reads the authenticated user's Firestore profile for name, role, created date, and last active date.
 - Staging login now creates or updates a Firestore `users` document after successful admin sign-in, so the admin profile can be seeded from the app.
 - Regular staging users should have a matching Firestore `users` document before login; the temporary admin bridge remains only to prevent admin lockout during setup.
 - Verified both `StandardWise Staging` and `StandardWise Local` build successfully after adding the Firestore user/profile layer.
-- Next Staging database goal: move questions, subjects, standards, feedback, answer attempts, and analytics data to Firestore so Staging uses shared cloud data.
+- Firebase Auth login now continues when Firestore is temporarily offline, using a fallback profile for the current session.
+- Added a Firebase standards service for `subjects`, `grades`, and `standards`.
+- Staging now loads subjects, grades, and standards from Firestore when available.
+- Staging seeds empty Firestore subject, grade, and standard collections from the current local sample data.
+- Admin-created subjects and standards now save locally first, then sync to Firestore in Staging mode.
+- Added an admin Standards sync status message so Firebase availability is visible.
+- Verified both `StandardWise Staging` and `StandardWise Local` build successfully after adding Firestore standards sync.
+- Added a Firebase questions service for the Firestore `questions` collection.
+- Staging now loads questions from Firestore when available.
+- Staging seeds an empty Firestore question collection from the current local sample data.
+- Admin-created and archived questions now save locally first, then sync to Firestore in Staging mode.
+- Student question generation now uses the synced Staging question list.
+- Added an admin Questions sync status message so Firebase availability is visible.
+- Verified both `StandardWise Staging` and `StandardWise Local` build successfully after adding Firestore questions sync.
+- Added a Firebase feedback service for the Firestore `feedback` collection.
+- Staging now loads feedback from Firestore when available.
+- Student feedback submissions now save locally first, then sync to Firestore in Staging mode.
+- Admin feedback status changes now sync to Firestore in Staging mode.
+- Added a Firebase answer-attempt service for the Firestore `answerAttempts` collection.
+- Staging now loads answer attempts from Firestore when available.
+- Checked student answers now create synced Firestore answer-attempt records in Staging mode.
+- Admin Users and Analytics pages now read from synced answer-attempt data in Staging mode.
+- Added admin sync status messages for feedback, users, and analytics data.
+- Verified both `StandardWise Staging` and `StandardWise Local` build successfully after adding Firestore feedback and answer-attempt sync.
+- Added `firestore.rules` with first production data protections for users, learning content, feedback, and answer attempts.
+- Added Firebase CLI config files, `firebase.json` and `.firebaserc`, for deploying Firestore rules to the StandardWise Firebase project.
+- Regular users can read learning content and create their own feedback/answer attempts, but cannot edit admin-only data.
+- Admin users can manage learning content, users, feedback, and answer-attempt data.
+- Unknown Firestore collections are denied by default.
+- Added a refresh-after-login hook so protected Firestore data can load after authentication succeeds.
+- Admin Users now loads the Firestore `users` collection in Staging mode instead of only showing local sample users.
+- Student question generation now falls back to matching questions by standard code when Firestore standard IDs differ.
+- Student dropdown selections now refresh after Firestore standards and questions finish loading.
+- Admin Feedback now refreshes from Firestore when the page opens and includes a manual refresh button.
+- Verified two-simulator testing with separate admin and regular-user sessions.
+- Verified both `StandardWise Staging` and `StandardWise Local` build successfully after the admin users, student questions, and feedback refresh fixes.
+- Next Staging database goal: test and deploy Firebase security rules, then tighten user-specific reads further after answer attempts and feedback store Firebase UID fields.
 - Improved Firebase login error messages for disabled sign-in methods, disabled users, rate limits, and network issues.
 
 **Done when:** StandardWise uses Firebase for production auth and shared cloud data instead of only local device storage.
 
 ## Open Decisions
 
-- Which Firebase data should be seeded first: sample subjects and standards, sample questions, or admin users?
+- Should admin users be seeded next, or should role management move fully into Firestore first?
 - Should login allow self-signup, or should admin users create regular-user accounts?
 - Should the app require internet connection?
 - Should questions be random, sequential, or adaptive based on past answers?
