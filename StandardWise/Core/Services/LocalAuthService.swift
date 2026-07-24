@@ -1,36 +1,116 @@
 import CryptoKit
 import FirebaseAuth
+import FirebaseFirestore
 import Foundation
 
 enum LocalAuthService {
+    private struct LocalCredential {
+        let user: StandardWiseUser
+        let password: String
+    }
+
     private static let adminEmails: Set<String> = [
         "admin@standardwise.app"
     ]
 
     static var sampleUsers: [StandardWiseUser] {
+        localCredentials.map(\.user)
+    }
+
+    static var modeTitle: String {
+        switch authMode {
+        case .local:
+            return "Local"
+        case .staging:
+            return "Staging"
+        }
+    }
+
+    static var loginHelpLines: [String] {
+        switch authMode {
+        case .local:
+            return [
+                "Admin: admin@standardwise.app / admin123",
+                "Regular: student@standardwise.app / student123"
+            ]
+        case .staging:
+            return [
+                "Admin role: admin@standardwise.app",
+                "Regular role: any other Firebase email/password user"
+            ]
+        }
+    }
+
+    private static var authMode: StandardWiseAuthMode {
+        StandardWiseAuthMode.current
+    }
+
+    private static var localCredentials: [LocalCredential] {
         [
-            StandardWiseUser(
-                id: UUID(uuidString: "00000000-0000-0000-0000-000000000301")!,
-                name: "Admin User",
-                email: "admin@standardwise.app",
-                role: .admin,
-                createdAt: Date(),
-                lastActiveAt: nil
+            LocalCredential(
+                user: StandardWiseUser(
+                    id: UUID(uuidString: "00000000-0000-0000-0000-000000000301")!,
+                    name: "Admin User",
+                    email: "admin@standardwise.app",
+                    role: .admin,
+                    createdAt: Date(),
+                    lastActiveAt: nil
+                ),
+                password: "admin123"
             ),
-            StandardWiseUser(
-                id: UUID(uuidString: "00000000-0000-0000-0000-000000000302")!,
-                name: "Regular User",
-                email: "student@standardwise.app",
-                role: .regular,
-                createdAt: Date(),
-                lastActiveAt: nil
+            LocalCredential(
+                user: StandardWiseUser(
+                    id: UUID(uuidString: "00000000-0000-0000-0000-000000000302")!,
+                    name: "Regular User",
+                    email: "student@standardwise.app",
+                    role: .regular,
+                    createdAt: Date(),
+                    lastActiveAt: nil
+                ),
+                password: "student123"
             )
         ]
     }
 
     static func authenticate(email: String, password: String) async throws -> StandardWiseUser {
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let result = try await signIn(email: normalizedEmail, password: password)
+
+        if authMode == .local {
+            guard let credential = localCredentials.first(where: { credential in
+                credential.user.email.lowercased() == normalizedEmail
+            }) else {
+                throw AuthServiceError.noUsernameFound
+            }
+
+            guard credential.password == password else {
+                throw AuthServiceError.wrongPassword
+            }
+
+            return credential.user
+        }
+
+        guard try await stagingUsernameExists(email: normalizedEmail) else {
+            throw AuthServiceError.noUsernameFound
+        }
+
+        let result: AuthDataResult
+        do {
+            result = try await signIn(email: normalizedEmail, password: password)
+        } catch {
+            if isMissingUsernameError(error) {
+                throw AuthServiceError.noUsernameFound
+            }
+
+            if isInvalidCredentialsError(error) {
+                throw AuthServiceError.wrongPassword
+            }
+
+            if isWrongPasswordError(error) {
+                throw AuthServiceError.wrongPassword
+            }
+
+            throw error
+        }
 
         return userProfile(from: result.user, fallbackEmail: normalizedEmail)
     }
@@ -55,6 +135,43 @@ enum LocalAuthService {
                 continuation.resume(returning: result)
             }
         }
+    }
+
+    private static func stagingUsernameExists(email: String) async throws -> Bool {
+        if adminEmails.contains(email) {
+            return true
+        }
+
+        return try await withCheckedThrowingContinuation { continuation in
+            Firestore.firestore()
+                .collection("users")
+                .whereField("emailLowercase", isEqualTo: email)
+                .limit(to: 1)
+                .getDocuments { snapshot, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+
+                    continuation.resume(returning: snapshot?.documents.isEmpty == false)
+                }
+        }
+    }
+
+    private static func isMissingUsernameError(_ error: Error) -> Bool {
+        AuthErrorCode(rawValue: (error as NSError).code)?.code == .userNotFound
+    }
+
+    private static func isWrongPasswordError(_ error: Error) -> Bool {
+        AuthErrorCode(rawValue: (error as NSError).code)?.code == .wrongPassword
+    }
+
+    private static func isInvalidCredentialsError(_ error: Error) -> Bool {
+        guard let code = AuthErrorCode(rawValue: (error as NSError).code)?.code else {
+            return false
+        }
+
+        return code == .invalidCredential
     }
 
     private static func userProfile(from firebaseUser: FirebaseAuth.User, fallbackEmail: String) -> StandardWiseUser {
@@ -102,6 +219,19 @@ enum LocalAuthService {
     }
 }
 
-private enum AuthServiceError: Error {
+enum AuthServiceError: Error {
+    case noUsernameFound
+    case wrongPassword
+    case invalidCredentials
     case missingUser
+}
+
+private enum StandardWiseAuthMode: String {
+    case local
+    case staging
+
+    static var current: StandardWiseAuthMode {
+        let value = ProcessInfo.processInfo.environment["STANDARDWISE_AUTH_MODE"]?.lowercased()
+        return StandardWiseAuthMode(rawValue: value ?? "") ?? .staging
+    }
 }

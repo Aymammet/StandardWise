@@ -82,6 +82,7 @@ struct PracticeView: View {
                             Text("No standards are available for this subject and grade yet.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                                .accessibilityLabel("No standards are available for this subject and grade yet.")
                         }
 
                         Button {
@@ -99,7 +100,9 @@ struct PracticeView: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .disabled(selectedStandardCode.isEmpty)
+                        .accessibilityHint("Creates one practice question for the selected subject, grade, and standard.")
                     }
                     .padding()
                     .background(.thinMaterial)
@@ -125,6 +128,7 @@ struct PracticeView: View {
             .toolbar {
                 if let onLogout {
                     Button("Logout", action: onLogout)
+                        .accessibilityHint("Logs out and returns to the login screen.")
                 }
             }
         }
@@ -180,6 +184,10 @@ private struct LabeledMenuSelector: View {
                 .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
             }
             .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(title)
+            .accessibilityValue(displayText(selection))
+            .accessibilityHint("Opens a list of available \(title.lowercased()) options.")
         }
     }
 }
@@ -229,6 +237,11 @@ private struct ProblemCard: View {
 
             if problem.type == .multipleChoice {
                 VStack(alignment: .leading, spacing: 8) {
+                    Text("Answer choices")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .accessibilityAddTraits(.isHeader)
+
                     ForEach(problem.choices) { choice in
                         Button {
                             guard answerResult == nil else { return }
@@ -239,29 +252,43 @@ private struct ProblemCard: View {
                                     .fontWeight(.semibold)
                                 Text(choice.text)
                                 Spacer()
+
+                                if let status = choiceStatus(choice) {
+                                    Label(status.text, systemImage: status.systemImage)
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(status.color)
+                                        .labelStyle(.titleAndIcon)
+                                }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(10)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 12)
                             .background(choiceBackground(choice))
                             .overlay {
                                 RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
-                                    .stroke(choice.id == selectedChoiceID ? Color.blue.opacity(0.45) : Color.clear, lineWidth: 1)
+                                    .stroke(choiceBorderColor(choice), lineWidth: choice.id == selectedChoiceID ? 2 : 1)
                             }
                             .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
                         }
                         .buttonStyle(.plain)
                         .disabled(answerResult != nil)
+                        .accessibilityLabel("Choice \(choice.id), \(choice.text)")
+                        .accessibilityValue(choiceAccessibilityValue(choice))
+                        .accessibilityHint(answerResult == nil ? "Selects this answer choice." : "Answer choices are locked after checking your answer.")
                     }
                 }
             } else {
-                TextField("Enter your answer", text: $typedAnswer)
+                TextField("Type your answer here", text: $typedAnswer)
                     .textFieldStyle(.roundedBorder)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .disabled(answerResult != nil)
+                    .accessibilityLabel("Answer")
+                    .accessibilityHint("Type your answer before checking it.")
             }
 
-            Button("Check Answer") {
+            Button {
                 let result = AnswerChecker.check(answer: submittedAnswer, for: problem)
                 answerResult = result
                 answerAttemptStore.record(
@@ -275,10 +302,16 @@ private struct ProblemCard: View {
                         isCorrect: result.isCorrect
                     )
                 )
+            } label: {
+                Text("Check Answer")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .controlSize(.large)
+            .frame(maxWidth: .infinity)
             .disabled(!hasAnswer || answerResult != nil)
+            .accessibilityHint("Checks your answer and shows the explanation.")
 
             if let answerResult {
                 VStack(alignment: .leading, spacing: 10) {
@@ -301,7 +334,14 @@ private struct ProblemCard: View {
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(answerResult.isCorrect ? Color.green.opacity(0.12) : Color.red.opacity(0.1))
+                .overlay {
+                    RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                        .stroke(answerResult.isCorrect ? Color.green.opacity(0.35) : Color.red.opacity(0.35), lineWidth: 1)
+                }
                 .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(answerResult.isCorrect ? "Correct answer." : "Incorrect answer.")
+                .accessibilityValue(problem.type == .input ? "Correct answer: \(problem.correctAnswer). Explanation: \(problem.explanation)" : "Explanation: \(problem.explanation)")
             }
 
             Button {
@@ -311,8 +351,10 @@ private struct ProblemCard: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            .controlSize(.large)
             .frame(maxWidth: .infinity, alignment: .leading)
             .disabled(didSubmitFeedback)
+            .accessibilityHint(didSubmitFeedback ? "Feedback has already been sent for this question." : "Opens a form to send feedback about this question.")
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -350,6 +392,52 @@ private struct ProblemCard: View {
 
         return Color(.secondarySystemBackground)
     }
+
+    private func choiceBorderColor(_ choice: AnswerChoice) -> Color {
+        guard answerResult != nil else {
+            return choice.id == selectedChoiceID ? Color.blue.opacity(0.65) : Color(.separator)
+        }
+
+        if choice.id == problem.correctAnswer {
+            return Color.green.opacity(0.7)
+        }
+
+        if choice.id == selectedChoiceID {
+            return Color.red.opacity(0.7)
+        }
+
+        return Color(.separator)
+    }
+
+    private func choiceStatus(_ choice: AnswerChoice) -> ChoiceStatus? {
+        guard let answerResult else {
+            return choice.id == selectedChoiceID ? ChoiceStatus(text: "Selected", systemImage: "checkmark.circle", color: .blue) : nil
+        }
+
+        if choice.id == problem.correctAnswer {
+            return ChoiceStatus(text: "Correct answer", systemImage: "checkmark.circle.fill", color: .green)
+        }
+
+        if choice.id == selectedChoiceID && !answerResult.isCorrect {
+            return ChoiceStatus(text: "Your answer", systemImage: "xmark.circle.fill", color: .red)
+        }
+
+        return nil
+    }
+
+    private func choiceAccessibilityValue(_ choice: AnswerChoice) -> String {
+        guard let status = choiceStatus(choice) else {
+            return "Not selected"
+        }
+
+        return status.text
+    }
+}
+
+private struct ChoiceStatus {
+    let text: String
+    let systemImage: String
+    let color: Color
 }
 
 private struct FeedbackFormView: View {
@@ -373,8 +461,10 @@ private struct FeedbackFormView: View {
                 }
 
                 Section("Feedback") {
-                    TextField("What should admin know?", text: $message, axis: .vertical)
+                    TextField("Describe the issue or suggestion", text: $message, axis: .vertical)
                         .lineLimit(4...8)
+                        .accessibilityLabel("Feedback message")
+                        .accessibilityHint("Tell the admin what is confusing or incorrect about this question.")
                 }
 
                 if let validationMessage {
@@ -396,6 +486,7 @@ private struct FeedbackFormView: View {
                     Button("Send") {
                         submit()
                     }
+                    .disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }

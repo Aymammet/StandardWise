@@ -307,7 +307,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** both regular-user and admin experiences feel clean, understandable, and ready for real use.
 
-## 16. Accessibility and Answer Clarity `[ ]`
+## 16. Accessibility and Answer Clarity `[x]`
 
 - Make every button, dropdown, and text field clearly labeled.
 - Do not rely only on color for correctness feedback.
@@ -315,10 +315,36 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Use placeholders that explain what users should enter.
 - Ensure tap targets are comfortable.
 - Keep explanation text readable.
+- Added accessibility labels and hints to login fields, dropdowns, Generate Question, Check Answer, Send Feedback, and Logout.
+- Added text and icon status labels for selected, correct, and incorrect multiple-choice answers.
+- Added stronger answer borders so correctness is not communicated by color alone.
+- Added accessible answer-result summaries that include correctness, correct typed answer when needed, and explanation text.
+- Improved typed-answer and feedback placeholders.
+- Increased control size for primary practice and login buttons.
 
 **Done when:** users can understand and use the practice flow even without relying only on color or visual layout.
 
-## 17. Write and Update README `[ ]`
+## 17. Login and Practice UI Follow-Up `[x]`
+
+- Improve login error messages so users know what to fix.
+- If the username/email exists but the password is wrong, show `Wrong password.`
+- If the username/email does not exist, show `No username exists.`
+- Keep Firebase and Local login error behavior consistent where possible.
+- Use the Firestore `users` collection as the staging source of truth for username existence before password sign-in.
+- Add an eye icon to the password field so users can show or hide the password while typing.
+- Keep the password visible/hidden state accessible for VoiceOver.
+- Improve the student `Check Answer` button alignment.
+- Make `Check Answer` full width so it matches the main action style and is easier to tap.
+- Added separate local login errors for missing username and wrong password.
+- Added a Firestore `users` lookup before staging sign-in so missing usernames can show `No username exists.`
+- Added `Wrong password.` for staging password failures after the username is confirmed to exist.
+- Temporarily allow the existing staging admin email while Firebase user records are being seeded.
+- Added a password eye button to show or hide password entry.
+- Updated `Check Answer` to use a full-width primary button.
+
+**Done when:** login errors are specific, password visibility can be toggled, and the Check Answer button is visually aligned with the student practice flow.
+
+## 18. Write and Update README `[x]`
 
 - Create or update `README.md` for the StandardWise repo.
 - Explain what the app does in clear language.
@@ -327,10 +353,11 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Include local setup instructions for opening/running the Xcode project.
 - Mention that data is currently local/in-memory until database persistence is added.
 - Keep README updated when major features are added.
+- Created `README.md` with the app overview, current features, login accounts, local/staging setup, Firebase status, planned Firestore collections, and project structure.
 
 **Done when:** the repo has a clear README that explains the app, current features, test logins, and local setup.
 
-## 18. Testing and Quality Checks `[ ]`
+## 19. Testing and Quality Checks `[~]`
 
 - Test login as admin and regular user.
 - Test subject, grade, and standard filtering.
@@ -342,10 +369,17 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Test feedback submission and admin review.
 - Test database save and load behavior once persistence is added.
 - Run Xcode builds before committing major changes.
+- Added `QA_CHECKLIST.md` to track manual workflow checks.
+- Verified `StandardWise Local` builds successfully.
+- Verified `StandardWise Staging` builds successfully.
+- Installed and launched the simulator build successfully.
+- Confirmed the app opens to the login screen in the simulator.
+- Confirmed the project does not have an automated test target yet.
+- Manual simulator workflow testing is still pending.
 
 **Done when:** the main student and admin workflows can be tested reliably after each major build step.
 
-## 19. Git and Release Workflow `[~]`
+## 20. Git and Release Workflow `[~]`
 
 - Keep the local repo connected to `git@github.com:Aymammet/StandardWise.git`.
 - Commit each meaningful feature step with a clear message.
@@ -355,7 +389,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the GitHub repo always reflects the latest stable local work.
 
-## 20. Add Firebase for Production Data `[~]`
+## 21. Add Firebase for Production Data `[~]`
 
 - Create a Firebase project for StandardWise.
 - Add the iOS Firebase config file to the Xcode app target.
@@ -376,6 +410,12 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Resolved Firebase package dependencies and verified the app builds.
 - Connected the login flow to Firebase Authentication.
 - Added temporary role mapping: `admin@standardwise.app` opens the admin dashboard; other Firebase users open the regular practice screen.
+- Added shared Xcode schemes for `StandardWise Local` and `StandardWise Staging`.
+- Local mode uses sample login credentials for simulator testing without Firebase.
+- Staging mode uses Firebase email/password authentication.
+- Current Staging behavior: login uses Firebase Auth, but questions, subjects, standards, feedback, answer attempts, and analytics still use local app data.
+- Next Staging database goal: move questions, subjects, standards, feedback, answer attempts, and analytics data to Firestore so Staging uses shared cloud data.
+- Improved Firebase login error messages for disabled sign-in methods, disabled users, rate limits, and network issues.
 
 **Done when:** StandardWise uses Firebase for production auth and shared cloud data instead of only local device storage.
 
@@ -393,4 +433,4 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 ## Immediate Next Step
 
-- Continue milestone 20: resolve Firebase packages, verify the app builds, then connect login to Firebase Authentication.
+- Start milestone 19: testing and quality checks.
