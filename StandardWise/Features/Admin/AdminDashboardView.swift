@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 struct AdminDashboardView: View {
@@ -10,6 +11,7 @@ struct AdminDashboardView: View {
 
     @State private var users = LocalAuthService.sampleUsers
     @State private var userSyncStatusMessage: String?
+    @State private var isAddingQuestion = false
 
     private var multipleChoiceCount: Int {
         questionStore.activeQuestions.filter { $0.type == .multipleChoice }.count
@@ -22,8 +24,9 @@ struct AdminDashboardView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 20) {
                     header
+                    todayStrip
 
                     LazyVGrid(
                         columns: [
@@ -32,26 +35,60 @@ struct AdminDashboardView: View {
                         ],
                         spacing: 12
                     ) {
-                        AdminMetricCard(
-                            title: "Questions",
-                            value: "\(questionStore.activeQuestions.count)",
-                            subtitle: "\(multipleChoiceCount) multiple choice"
-                        )
-                        AdminMetricCard(
-                            title: "Standards",
-                            value: "\(standardStore.activeStandards.count)",
-                            subtitle: "Ready for practice"
-                        )
-                        AdminMetricCard(
-                            title: "Users",
-                            value: "\(users.count)",
-                            subtitle: "\(answerAttemptStore.attempts.count) answer attempts"
-                        )
-                        AdminMetricCard(
-                            title: "Feedback",
-                            value: "\(feedbackStore.feedbackItems.count)",
-                            subtitle: "\(newFeedbackCount) new reports"
-                        )
+                        NavigationLink {
+                            AdminQuestionManagementView(
+                                questionStore: questionStore,
+                                standardStore: standardStore
+                            )
+                        } label: {
+                            AdminMetricCard(
+                                title: "Questions",
+                                value: "\(questionStore.activeQuestions.count)",
+                                subtitle: "\(multipleChoiceCount) multiple choice"
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        NavigationLink {
+                            AdminStandardsManagementView(standardStore: standardStore)
+                        } label: {
+                            AdminMetricCard(
+                                title: "Standards",
+                                value: "\(standardStore.activeStandards.count)",
+                                subtitle: "\(standardStore.activeSubjects.count) subjects"
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        NavigationLink {
+                            AdminUsersView(
+                                users: users,
+                                userSyncStatusMessage: userSyncStatusMessage,
+                                answerAttemptStore: answerAttemptStore
+                            )
+                        } label: {
+                            AdminMetricCard(
+                                title: "Students",
+                                value: "\(users.count)",
+                                subtitle: "\(answerAttemptStore.attempts.count) total attempts"
+                            )
+                        }
+                        .buttonStyle(.plain)
+
+                        NavigationLink {
+                            AdminFeedbackView(
+                                feedbackStore: feedbackStore,
+                                questionStore: questionStore
+                            )
+                        } label: {
+                            AdminMetricCard(
+                                title: "Feedback",
+                                value: "\(feedbackStore.feedbackItems.count)",
+                                subtitle: "\(newFeedbackCount) new reports",
+                                isAlert: newFeedbackCount > 0
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     VStack(alignment: .leading, spacing: 12) {
@@ -59,10 +96,9 @@ struct AdminDashboardView: View {
                             .font(.title3)
                             .fontWeight(.semibold)
 
-                        VStack(spacing: 10) {
+                        VStack(spacing: 8) {
                             AdminNavigationRow(
                                 title: "Questions",
-                                subtitle: "Review, add, and edit practice questions",
                                 systemImage: "questionmark.square",
                                 destination: AdminQuestionManagementView(
                                     questionStore: questionStore,
@@ -71,13 +107,11 @@ struct AdminDashboardView: View {
                             )
                             AdminNavigationRow(
                                 title: "Standards",
-                                subtitle: "Manage subject, grade, and standard data",
                                 systemImage: "list.bullet.rectangle",
                                 destination: AdminStandardsManagementView(standardStore: standardStore)
                             )
                             AdminNavigationRow(
-                                title: "Users",
-                                subtitle: "See roles, attempts, and accuracy summaries",
+                                title: "Students",
                                 systemImage: "person.2",
                                 destination: AdminUsersView(
                                     users: users,
@@ -87,8 +121,8 @@ struct AdminDashboardView: View {
                             )
                             AdminNavigationRow(
                                 title: "Feedback",
-                                subtitle: "Read student reports and question notes",
                                 systemImage: "bubble.left.and.bubble.right",
+                                badgeText: newFeedbackCount > 0 ? "\(newFeedbackCount) new" : nil,
                                 destination: AdminFeedbackView(
                                     feedbackStore: feedbackStore,
                                     questionStore: questionStore
@@ -96,7 +130,6 @@ struct AdminDashboardView: View {
                             )
                             AdminNavigationRow(
                                 title: "Analytics",
-                                subtitle: "Analyze standards, accuracy, and activity",
                                 systemImage: "chart.bar",
                                 destination: AdminAnalyticsView(
                                     users: users,
@@ -106,13 +139,34 @@ struct AdminDashboardView: View {
                             )
                         }
                     }
+
+                    syncFooter
                 }
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Admin")
             .toolbar {
-                Button("Logout", action: onLogout)
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        isAddingQuestion = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .fontWeight(.semibold)
+                    }
+                    .tint(StandardWiseTheme.accent)
+                    .accessibilityLabel("Add question")
+                    .accessibilityHint("Opens the new question form.")
+                }
+
+                ToolbarItem(placement: .primaryAction) {
+                    StandardWiseSignOutButton(onSignOut: onLogout)
+                }
+            }
+            .sheet(isPresented: $isAddingQuestion) {
+                AdminQuestionFormView(question: nil, standardStore: standardStore) { question in
+                    questionStore.save(question)
+                }
             }
             .task {
                 await loadFirebaseUsersIfNeeded()
@@ -121,13 +175,92 @@ struct AdminDashboardView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Welcome, \(user.name)")
-                .font(.title2)
-                .fontWeight(.bold)
+        Text("Welcome back, \(adminFirstName)")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+    }
 
-            Text("Manage practice content, review student feedback, and track progress from one place.")
+    private var adminFirstName: String {
+        user.name.split(separator: " ").first.map(String.init) ?? user.name
+    }
+
+    private var attemptsToday: [AnswerAttempt] {
+        let calendar = Calendar.current
+        return answerAttemptStore.attempts.filter { calendar.isDateInToday($0.createdAt) }
+    }
+
+    private var todayAccuracyText: String {
+        guard !attemptsToday.isEmpty else { return "—" }
+
+        let correct = attemptsToday.filter(\.isCorrect).count
+        let accuracy = Double(correct) / Double(attemptsToday.count) * 100
+        return "\(Int(accuracy.rounded()))%"
+    }
+
+    private var todayStrip: some View {
+        HStack(spacing: 0) {
+            todayStripColumn(value: "\(attemptsToday.count)", label: "Attempts today")
+            Divider().frame(height: 28)
+            todayStripColumn(value: "\(Set(attemptsToday.map(\.userID)).count)", label: "Active students")
+            Divider().frame(height: 28)
+            todayStripColumn(
+                value: todayAccuracyText,
+                label: "Accuracy",
+                valueColor: attemptsToday.isEmpty ? .primary : StandardWiseTheme.success
+            )
+        }
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(Color(.systemBackground))
+        .overlay {
+            RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                .stroke(Color(.separator), lineWidth: 0.5)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Today: \(attemptsToday.count) attempts, \(Set(attemptsToday.map(\.userID)).count) active students, accuracy \(todayAccuracyText).")
+    }
+
+    private func todayStripColumn(value: String, label: String, valueColor: Color = .primary) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.headline)
+                .foregroundStyle(valueColor)
+                .monospacedDigit()
+
+            Text(label)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var syncFooter: some View {
+        Group {
+            if StandardWiseAuthMode.current == .staging {
+                Label(
+                    isUsingLocalData ? "Offline · using local data" : "Synced with Firebase",
+                    systemImage: isUsingLocalData ? "icloud.slash" : "checkmark.icloud"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private var isUsingLocalData: Bool {
+        [
+            questionStore.syncStatusMessage,
+            standardStore.syncStatusMessage,
+            feedbackStore.syncStatusMessage,
+            answerAttemptStore.syncStatusMessage,
+            userSyncStatusMessage
+        ]
+        .compactMap { $0 }
+        .contains { message in
+            message.localizedCaseInsensitiveContains("unavailable")
+                || message.localizedCaseInsensitiveContains("failed")
         }
     }
 
@@ -152,31 +285,50 @@ private struct AdminMetricCard: View {
     let title: String
     let value: String
     let subtitle: String
+    var isAlert = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            HStack {
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+
             Text(value)
                 .font(.largeTitle)
                 .fontWeight(.bold)
+
             Text(subtitle)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .fontWeight(isAlert ? .semibold : .regular)
+                .foregroundStyle(isAlert ? StandardWiseTheme.danger : Color.secondary)
         }
         .frame(minHeight: 108)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(Color(.secondarySystemBackground))
+        .background(Color(.systemBackground))
+        .overlay {
+            RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                .stroke(
+                    isAlert ? StandardWiseTheme.danger : Color(.separator),
+                    lineWidth: isAlert ? 1.5 : 0.5
+                )
+        }
         .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
     }
 }
 
 private struct AdminNavigationRow<Destination: View>: View {
     let title: String
-    let subtitle: String
     let systemImage: String
+    var badgeText: String?
     let destination: Destination
 
     var body: some View {
@@ -185,32 +337,45 @@ private struct AdminNavigationRow<Destination: View>: View {
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: systemImage)
-                    .font(.title3)
-                    .foregroundStyle(.blue)
-                    .frame(width: 32, height: 32)
-                    .background(Color.blue.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                    .font(.subheadline)
+                    .foregroundStyle(StandardWiseTheme.accent)
+                    .frame(width: 30, height: 30)
+                    .background(StandardWiseTheme.accentSoft)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
 
                 Spacer()
+
+                if let badgeText {
+                    Text(badgeText)
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(StandardWiseTheme.danger)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(StandardWiseTheme.dangerSoft)
+                        .clipShape(Capsule())
+                }
 
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
-            .padding()
-            .background(Color(.secondarySystemBackground))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(Color(.systemBackground))
+            .overlay {
+                RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                    .stroke(Color(.separator), lineWidth: 0.5)
+            }
             .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(badgeText != nil ? "\(title), \(badgeText!)" : title)
     }
 }
 
@@ -305,7 +470,7 @@ private struct AdminQuestionManagementView: View {
                             Button("Edit") {
                                 editingQuestion = question
                             }
-                            .tint(.blue)
+                            .tint(StandardWiseTheme.accent)
                         }
                     }
                 }
@@ -429,7 +594,7 @@ private struct AdminQuestionRow: View {
                 Text(question.standardCode)
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(StandardWiseTheme.accent)
                 Text(question.type.displayName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -840,7 +1005,7 @@ private struct AdminStandardsManagementView: View {
                         Button("Edit") {
                             editingSubject = subject
                         }
-                        .tint(.blue)
+                        .tint(StandardWiseTheme.accent)
                     }
                 }
             }
@@ -869,7 +1034,7 @@ private struct AdminStandardsManagementView: View {
                         Button("Edit") {
                             editingStandard = standard
                         }
-                        .tint(.blue)
+                        .tint(StandardWiseTheme.accent)
                     }
                 }
             }
@@ -905,7 +1070,7 @@ private struct AdminStandardRow: View {
                 Text(standard.code)
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(StandardWiseTheme.accent)
                 Text("\(standard.subjectName) - \(standard.gradeName)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -1242,7 +1407,7 @@ private struct AdminFeedbackRow: View {
                     Text(question.standardCode)
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(StandardWiseTheme.accent)
                     Text(question.prompt)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -1431,7 +1596,7 @@ private struct AdminAttemptRow: View {
                 Text(attempt.standardCode)
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(StandardWiseTheme.accent)
                 Text("\(attempt.subjectName) - \(attempt.gradeName)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -1519,7 +1684,7 @@ private struct AdminAnalyticsView: View {
                     items: AnalyticsGroup.make(from: attempts, keyPath: \.standardCode)
                 )
 
-                AnalyticsGroupSection(
+                AnalyticsRankSection(
                     title: "Most Practiced Standards",
                     items: AnalyticsGroup.make(from: attempts, keyPath: \.standardCode)
                         .sorted { $0.total > $1.total }
@@ -1612,23 +1777,90 @@ private struct AnalyticsGroupSection: View {
     let title: String
     let items: [AnalyticsGroup]
 
+    private var chartItems: [AnalyticsGroup] {
+        Array(items.prefix(8))
+    }
+
     var body: some View {
         Section(title) {
-            ForEach(items.prefix(8)) { item in
+            Chart(chartItems) { item in
+                BarMark(
+                    x: .value("Correct", item.correct),
+                    y: .value("Group", item.id)
+                )
+                .foregroundStyle(by: .value("Result", "Correct"))
+
+                BarMark(
+                    x: .value("Missed", item.total - item.correct),
+                    y: .value("Group", item.id)
+                )
+                .foregroundStyle(by: .value("Result", "Missed"))
+            }
+            .chartForegroundStyleScale([
+                "Correct": StandardWiseTheme.success,
+                "Missed": StandardWiseTheme.danger
+            ])
+            .chartXAxisLabel("Attempts")
+            .frame(height: CGFloat(chartItems.count) * 40 + 40)
+            .padding(.vertical, 4)
+            .accessibilityLabel("\(title) chart")
+
+            ForEach(chartItems) { item in
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    Text(item.id)
+                        .font(.subheadline)
+
+                    Spacer()
+
+                    Text("\(item.total) attempts")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text(item.accuracyText)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(StandardWiseTheme.accent)
+                        .frame(minWidth: 48, alignment: .trailing)
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+}
+
+private struct AnalyticsRankSection: View {
+    let title: String
+    let items: [AnalyticsGroup]
+
+    var body: some View {
+        Section(title) {
+            ForEach(Array(items.prefix(5).enumerated()), id: \.element.id) { index, item in
+                HStack(spacing: 12) {
+                    Text("\(index + 1)")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(StandardWiseTheme.accent)
+                        .frame(width: 24, height: 24)
+                        .background(StandardWiseTheme.accentSoft)
+                        .clipShape(Circle())
+
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(item.id)
-                            .font(.headline)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
                         Text("\(item.total) attempts")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+
                     Spacer()
+
                     Text(item.accuracyText)
-                        .font(.headline)
-                        .foregroundStyle(.blue)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(StandardWiseTheme.accent)
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
             }
         }
     }
@@ -1660,7 +1892,7 @@ private struct AnalyticsQuestionSection: View {
                             Text(item.standardCode)
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(StandardWiseTheme.accent)
                             Spacer()
                             Text("\(item.missed) missed of \(item.total)")
                                 .font(.caption)
@@ -1708,7 +1940,7 @@ private struct AnalyticsUserSection: View {
                     Spacer()
                     Text(summary.accuracyText)
                         .font(.headline)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(StandardWiseTheme.accent)
                 }
                 .padding(.vertical, 4)
             }

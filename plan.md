@@ -483,6 +483,52 @@ Bugs found during a code review of the Firebase staging work, with their fixes.
 
 **Done when:** the fixes build cleanly and the affected flows (analytics grouping, student login without permission errors, admin editing during sync) are re-tested in the simulator.
 
+## 23. Student UI/UX Redesign `[~]`
+
+Make the student experience feel modern, friendly, and game-like to attract and retain students. Admin screens stay dense and functional.
+
+- Replace the Subject dropdown with tappable subject cards that use icons.
+- Replace the Grade dropdown with a horizontal chip row.
+- Replace the Standard dropdown with a selector that shows the standard code, name, and the student's mastery percent.
+- Replace single-question generation with 5-question practice sessions that show a progress bar and a session summary screen.
+- Rename developer-style labels to student language, for example `Generate Question` becomes `Start practicing`.
+- Add light gamification: daily goal, practice streak, per-standard mastery bars, and celebratory feedback wording.
+- Show a greeting with the student's name on the practice home screen.
+- Add motion: spring animation on answer selection, slide transition between questions, and haptic feedback on answer checking.
+- Pick one brand accent color and apply it consistently through `StandardWiseTheme`.
+- Use rounded typography for student screens and add a proper app icon.
+- Support dark mode across student and admin screens.
+- Replace sync status text with skeleton loading states, and design friendly empty states with a clear next step.
+- Keep the admin experience dense: move analytics lists to Swift Charts, keep the current card layout.
+
+Login and register redesign:
+
+- Remove the welcome screen and land directly on Sign in, with a `New here? Create an account` link.
+- Center the app mark with a short student-facing tagline instead of the current admin-feature description.
+- Rename `Login` to `Sign in` and `Register` to `Create account`.
+- Rephrase auth errors as help with a next step, for example `That email already has an account. Try signing in instead.`, shown in a soft tinted card instead of a red warning label.
+- Unify the email and password fields into one 12-point rounded style with leading icons and a clear focus state.
+- Add a live password strength bar on the create-account form instead of erroring after submit.
+- Hide sample test logins behind `#if DEBUG` or show them only in Local mode.
+- Auto-focus the email field on appear and submit the form with the return key.
+- Animate transitions between the sign-in, create-account, and forgot-password states.
+- Plan for Sign in with Apple later; Apple requires it once any third-party login is offered.
+
+Progress:
+
+- Expanded `StandardWiseTheme` with a purple brand accent, soft tint colors, a shared primary button style, a shared field style, spring animation, and haptic helpers.
+- Redesigned the login flow: removed the welcome screen, added a centered brand mark and tagline, renamed actions to `Sign in` and `Create account`, unified field styling with icons and focus rings, added a live password strength bar, softened error messages into tinted helper cards with next steps, moved test logins behind `#if DEBUG`, added email auto-focus and return-key submit, and animated screen transitions.
+- Redesigned the practice flow: greeting with the student's first name, streak and daily-goal card with a progress ring, tappable subject cards with icons, grade chips, a standard selector showing mastery percent, 5-question practice sessions with a progress bar, animated question transitions, celebratory feedback wording, haptics on answers, a session summary screen with mastery, and friendly empty states.
+- Verified the app builds and runs in the simulator after the redesign.
+- Modernized the admin experience: applied the purple brand accent across admin icons, links, and controls; converted Attempts by Subject, Grade, and Standard analytics lists into Swift Charts stacked bar charts showing correct vs missed; and turned Most Practiced Standards into a ranked top-5 list.
+- Verified the app builds and runs after the admin analytics update.
+- Redesigned the admin dashboard: compact one-line welcome, a today strip with attempts, active students, and accuracy, tappable metric cards with chevrons, a red alert treatment on the Feedback card and a `new` badge on the Feedback row when reports are waiting, one-line navigation rows, a toolbar `+` quick action that opens the Add Question form, a sign-out icon with a confirmation dialog on both admin and student screens, and a compact sync footer in Staging mode.
+- Gave admin metric cards and navigation rows visible white card surfaces with hairline borders after they blended into the iOS 26 grouped background.
+- Verified the app builds and runs after the admin dashboard redesign.
+- Still to do: app icon, dark-mode audit pass, and manual testing of the new flows.
+
+**Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
