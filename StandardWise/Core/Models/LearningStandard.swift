@@ -62,6 +62,12 @@ final class StandardStore: ObservableObject {
     private let standardsStorageKey = "standardwise.standards"
     private let usesFirebaseStandards = StandardWiseAuthMode.current == .staging
 
+    /// IDs of subjects/standards edited locally that have not confirmed a
+    /// Firebase save yet. Firebase refreshes keep the local copy for these IDs
+    /// so an in-flight edit is not overwritten by stale remote data.
+    private var pendingSyncSubjectIDs: Set<UUID> = []
+    private var pendingSyncStandardIDs: Set<UUID> = []
+
     init(
         subjects: [AcademicSubject] = StandardWiseSampleData.subjects,
         grades: [GradeLevel] = StandardWiseSampleData.grades,
@@ -115,6 +121,7 @@ final class StandardStore: ObservableObject {
             subjects.append(subject)
         }
 
+        pendingSyncSubjectIDs.insert(subject.id)
         syncSubjectToFirebase(subject)
     }
 
@@ -135,6 +142,7 @@ final class StandardStore: ObservableObject {
             standards.insert(standard, at: 0)
         }
 
+        pendingSyncStandardIDs.insert(standard.id)
         syncStandardToFirebase(standard)
     }
 
@@ -174,9 +182,33 @@ final class StandardStore: ObservableObject {
                 fallbackGrades: fallbackGrades,
                 fallbackStandards: fallbackStandards
             )
-            subjects = firebaseData.subjects
+            var remoteSubjects = firebaseData.subjects
+            var remoteStandards = firebaseData.standards
+
+            // Keep local versions of subjects/standards with unsynced edits.
+            for pendingID in pendingSyncSubjectIDs {
+                guard let localSubject = subjects.first(where: { $0.id == pendingID }) else { continue }
+
+                if let index = remoteSubjects.firstIndex(where: { $0.id == pendingID }) {
+                    remoteSubjects[index] = localSubject
+                } else {
+                    remoteSubjects.append(localSubject)
+                }
+            }
+
+            for pendingID in pendingSyncStandardIDs {
+                guard let localStandard = standards.first(where: { $0.id == pendingID }) else { continue }
+
+                if let index = remoteStandards.firstIndex(where: { $0.id == pendingID }) {
+                    remoteStandards[index] = localStandard
+                } else {
+                    remoteStandards.insert(localStandard, at: 0)
+                }
+            }
+
+            subjects = remoteSubjects
             grades = firebaseData.grades
-            standards = firebaseData.standards
+            standards = remoteStandards
             syncStatusMessage = "Subjects and standards are synced with Firebase."
         } catch {
             syncStatusMessage = "Using local subjects and standards because Firebase is unavailable."
@@ -189,6 +221,7 @@ final class StandardStore: ObservableObject {
         Task {
             do {
                 try await FirebaseStandardsService.saveSubject(subject)
+                pendingSyncSubjectIDs.remove(subject.id)
                 syncStatusMessage = "Subject saved to Firebase."
             } catch {
                 syncStatusMessage = "Subject saved locally. Firebase sync failed."
@@ -202,6 +235,7 @@ final class StandardStore: ObservableObject {
         Task {
             do {
                 try await FirebaseStandardsService.saveStandard(standard)
+                pendingSyncStandardIDs.remove(standard.id)
                 syncStatusMessage = "Standard saved to Firebase."
             } catch {
                 syncStatusMessage = "Standard saved locally. Firebase sync failed."

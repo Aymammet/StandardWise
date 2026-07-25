@@ -64,12 +64,9 @@ final class FeedbackStore: ObservableObject {
             LocalPersistence.save(feedbackItems, forKey: storageKey)
         }
 
-        if usesFirebaseFeedback {
-            syncStatusMessage = "Syncing feedback from Firebase..."
-            Task {
-                await loadFirebaseFeedback()
-            }
-        }
+        // Firebase feedback reads are admin-only under the Firestore security
+        // rules, so loading happens after login via refreshFromFirebaseIfNeeded
+        // instead of at init for every user.
     }
 
     func submitFeedback(userID: UUID, questionID: UUID, message: String) {

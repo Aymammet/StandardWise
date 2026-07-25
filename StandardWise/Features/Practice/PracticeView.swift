@@ -112,7 +112,8 @@ struct PracticeView: View {
                         ProblemCard(
                             user: user,
                             problem: problem,
-                            standard: standardStore.standards.first { $0.id == problem.standardID },
+                            standard: standardStore.standards.first { $0.id == problem.standardID }
+                                ?? standardStore.standards.first { $0.code == problem.standardCode },
                             feedbackStore: feedbackStore,
                             answerAttemptStore: answerAttemptStore
                         )
@@ -130,6 +131,9 @@ struct PracticeView: View {
                     Button("Logout", action: onLogout)
                         .accessibilityHint("Logs out and returns to the login screen.")
                 }
+            }
+            .onAppear {
+                alignSelectionWithAvailableStandards()
             }
             .onChange(of: standardStore.subjects) { _, _ in
                 alignSelectionWithAvailableStandards()

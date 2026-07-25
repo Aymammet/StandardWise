@@ -41,7 +41,7 @@ enum FirebaseUserService {
         do {
             if let document = try await userDocument(forEmail: email),
                let profile = standardWiseUser(from: document, fallbackUID: firebaseUser.uid, fallbackEmail: email) {
-                try? await updateLastActive(email: email, firebaseUser: firebaseUser)
+                try? await updateLastActive(document: document, email: email, firebaseUser: firebaseUser)
                 return profile
             }
 
@@ -114,10 +114,15 @@ enum FirebaseUserService {
             .setData(data, merge: true)
     }
 
-    private static func updateLastActive(email: String, firebaseUser: FirebaseAuth.User) async throws {
-        try await Firestore.firestore()
-            .collection("users")
-            .document(documentID(forEmail: email))
+    private static func updateLastActive(
+        document: DocumentSnapshot,
+        email: String,
+        firebaseUser: FirebaseAuth.User
+    ) async throws {
+        // Write to the document that was actually found. Writing to
+        // users/{email} could create a partial duplicate profile when the
+        // existing document uses a different document ID.
+        try await document.reference
             .setData(
                 [
                     "firebaseUID": firebaseUser.uid,

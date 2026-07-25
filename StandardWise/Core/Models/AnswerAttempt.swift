@@ -54,12 +54,9 @@ final class AnswerAttemptStore: ObservableObject {
             LocalPersistence.save(attempts, forKey: storageKey)
         }
 
-        if usesFirebaseAttempts {
-            syncStatusMessage = "Syncing answer attempts from Firebase..."
-            Task {
-                await loadFirebaseAttempts()
-            }
-        }
+        // Firebase answer-attempt reads are admin-only under the Firestore
+        // security rules, so loading happens after login via
+        // refreshFromFirebaseIfNeeded instead of at init for every user.
     }
 
     func record(_ attempt: AnswerAttempt) {

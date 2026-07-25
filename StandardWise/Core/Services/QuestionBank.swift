@@ -177,6 +177,11 @@ final class QuestionStore: ObservableObject {
     private let storageKey = "standardwise.questions"
     private let usesFirebaseQuestions = StandardWiseAuthMode.current == .staging
 
+    /// IDs of questions edited locally that have not confirmed a Firebase save
+    /// yet. Firebase refreshes keep the local copy for these IDs so an
+    /// in-flight edit is not overwritten by stale remote data.
+    private var pendingSyncQuestionIDs: Set<UUID> = []
+
     init(questions: [Question] = QuestionBank.sampleQuestions) {
         if let savedQuestions = LocalPersistence.load([Question].self, forKey: storageKey) {
             self.questions = savedQuestions
@@ -204,6 +209,7 @@ final class QuestionStore: ObservableObject {
             questions.insert(question, at: 0)
         }
 
+        pendingSyncQuestionIDs.insert(question.id)
         syncQuestionToFirebase(question)
     }
 
@@ -237,9 +243,22 @@ final class QuestionStore: ObservableObject {
 
     private func loadFirebaseQuestions(fallbackQuestions: [Question]) async {
         do {
-            questions = try await FirebaseQuestionsService.loadQuestions(
+            var remoteQuestions = try await FirebaseQuestionsService.loadQuestions(
                 fallbackQuestions: fallbackQuestions
             )
+
+            // Keep local versions of questions with unsynced edits.
+            for pendingID in pendingSyncQuestionIDs {
+                guard let localQuestion = questions.first(where: { $0.id == pendingID }) else { continue }
+
+                if let index = remoteQuestions.firstIndex(where: { $0.id == pendingID }) {
+                    remoteQuestions[index] = localQuestion
+                } else {
+                    remoteQuestions.insert(localQuestion, at: 0)
+                }
+            }
+
+            questions = remoteQuestions
             syncStatusMessage = "Questions are synced with Firebase."
         } catch {
             syncStatusMessage = "Using local questions because Firebase is unavailable."
@@ -252,6 +271,7 @@ final class QuestionStore: ObservableObject {
         Task {
             do {
                 try await FirebaseQuestionsService.saveQuestion(question)
+                pendingSyncQuestionIDs.remove(question.id)
                 syncStatusMessage = "Question saved to Firebase."
             } catch {
                 syncStatusMessage = "Question saved locally. Firebase sync failed."

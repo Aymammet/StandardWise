@@ -34,16 +34,22 @@ struct RootView: View {
                 }
             }            
             .task(id: user.id) {
-                await refreshFirebaseDataAfterLogin()
+                await refreshFirebaseDataAfterLogin(for: user)
             }
         } else {
             LoginView(session: session)
         }
     }
 
-    private func refreshFirebaseDataAfterLogin() async {
+    private func refreshFirebaseDataAfterLogin(for user: StandardWiseUser) async {
         await standardStore.refreshFromFirebaseIfNeeded()
         await questionStore.refreshFromFirebaseIfNeeded()
+
+        // Feedback and answer-attempt reads are admin-only under the Firestore
+        // security rules, so skip them for regular users to avoid guaranteed
+        // permission-denied errors and misleading sync status messages.
+        guard user.role == .admin else { return }
+
         await feedbackStore.refreshFromFirebaseIfNeeded()
         await answerAttemptStore.refreshFromFirebaseIfNeeded()
     }

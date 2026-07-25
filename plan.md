@@ -464,6 +464,22 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** StandardWise uses Firebase for production auth and shared cloud data instead of only local device storage.
 
+## 22. Bug Review and Fixes (July 2026) `[~]`
+
+Bugs found during a code review of the Firebase staging work, with their fixes.
+
+- Fixed: answer attempts recorded `Unknown` subject and grade when a question was matched by standard code instead of standard ID. `PracticeView` now falls back to a standard-code lookup when resolving the standard for the question card, so analytics group correctly.
+- Fixed: `FeedbackStore` and `AnswerAttemptStore` loaded admin-only Firestore collections at init for every user, which guarantees permission-denied errors for students once the security rules deploy. These loads now happen only after login and only for admin users.
+- Fixed: `FirebaseUserService.updateLastActive` wrote to `users/{email}`, which could create a partial duplicate user document when the real profile was stored under a different document ID. It now writes to the document that was actually found.
+- Fixed: Firebase refreshes replaced the whole local question and standards arrays, which could overwrite admin edits made before a sync finished. `QuestionStore` and `StandardStore` now track pending unsynced edits and preserve them during refresh.
+- Fixed: the practice screen hard-coded `Math / 6th / 6.RP.1` as initial selections, which could go stale if persisted store data no longer contained them. Selections now re-align when the screen appears.
+- Known limitation: the Firestore `users` pre-check for `No username exists.` runs before sign-in, so it is unauthenticated and will be denied once security rules deploy. Login still works because Firebase Auth error mapping covers the message, but the pre-check becomes a wasted read. A proper fix needs a Cloud Function or disabling email enumeration protection.
+- Known limitation: distinct `No username exists.` and `Wrong password.` messages allow account enumeration. This is an accepted trade-off for now.
+- Known limitation: locally recorded attempts and feedback created while Firebase was unavailable are not re-uploaded later; only newly created records sync.
+- Still to do: rebuild and manually re-test the student and admin flows in the simulator after these fixes.
+
+**Done when:** the fixes build cleanly and the affected flows (analytics grouping, student login without permission errors, admin editing during sync) are re-tested in the simulator.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
@@ -478,4 +494,4 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 ## Immediate Next Step
 
-- Continue milestone 21: Firebase production data migration.
+- Finish milestone 22: rebuild and re-test the bug fixes in the simulator, then continue milestone 21 (deploy and test Firestore security rules).
