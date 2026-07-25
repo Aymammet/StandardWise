@@ -1,23 +1,35 @@
 # StandardWise
 
-StandardWise is a SwiftUI iOS app for standards-based student practice. Students select a subject, grade, and learning standard, generate a matching question, answer it, and receive immediate feedback. Admin users can manage questions, subjects, standards, users, feedback, and analytics from a separate admin area.
+StandardWise is a SwiftUI iOS app for standards-based student practice. Students pick a subject, grade, and learning standard, then practice in 5-question sessions with streaks, mastery tracking, and instant feedback. Admin users manage questions, subjects, standards, users, and feedback, and review activity through charts-based analytics from a separate admin area.
 
 ## Current Status
 
-The app is in active development. The local prototype is working, and Firebase has been added for staging authentication plus shared Firestore data for users, standards, questions, feedback, and answer attempts.
+The app is in active development. It runs in two modes: `Local` (sample logins, on-device data only) and `Staging` (Firebase Authentication plus shared Firestore data for users, standards, questions, feedback, and answer attempts). The student and admin interfaces were redesigned for a more polished, game-like feel, and the practice content now covers Math, ELA, and Science across grades 6 through 9.
+
+See `ARCHITECTURE.md` for how the app, stores, and Firestore schema fit together, and `plan.md` for the full build history and open items.
 
 ## Current Features
 
+### Student experience
+
+- Sign in / create account flow with friendly error messages and a password strength check.
+- Practice home screen with a greeting, daily streak and goal tracker, tappable subject cards, grade chips, and a standard picker showing mastery percent.
+- 5-question practice sessions with a progress bar, animated transitions, haptics, and a session summary.
+- Multiple-choice and typed-answer questions with instant correct/incorrect feedback and explanations.
+- In-session feedback reporting for confusing or incorrect questions.
+
+### Admin experience
+
+- Dashboard with a today activity strip (attempts, active students, accuracy), tappable metric cards, and a feedback alert badge when new reports are waiting.
+- Question management with add, edit, archive, search, and filters.
+- Standards management with add/edit/archive support for subjects and standards.
+- Feedback review with status tracking (new, reviewed, resolved).
+- User list with accuracy summaries and attempt history.
+- Analytics with bar charts for attempts by subject, grade, and standard, plus most-missed questions and most-practiced standards.
+
+### Platform
+
 - Role-based login for admin and regular users.
-- Student practice screen with Subject, Grade, and Standard dropdowns.
-- Question generation from the current local question bank.
-- Multiple-choice and typed-answer questions.
-- Answer checking with correct and incorrect feedback.
-- Question explanations after answer checking.
-- Student feedback submission for questions.
-- Admin dashboard with sections for questions, standards, users, feedback, and analytics.
-- Admin question management with add, edit, archive, search, and filters.
-- Admin standards management with add/edit/archive support for subjects and standards.
 - Local mode tracking for users, answer attempts, feedback, and analytics.
 - Staging mode sync for users, standards, questions, feedback, and answer attempts.
 - Shared Xcode schemes for Local and Staging runs.
@@ -154,12 +166,16 @@ StandardWise/
   StandardWiseApp.swift
 ```
 
+## Project Docs
+
+- `plan.md` — source of truth for planned features, build order, and progress notes.
+- `ARCHITECTURE.md` — app modes, the store/sync pattern, Firestore schema, and security rules summary.
+- `PRIVACY.md` — draft privacy policy; needs legal review before publication.
+
 ## Development Plan
 
-The source of truth for planned features and build order is `plan.md`.
+Next major work:
 
-Next major work after README:
-
-- Testing and quality checks.
-- Continue Firebase production data migration.
-- Test and deploy Firebase security rules.
+- Deploy and test Firestore security rules.
+- Finish manual testing of the redesigned student and admin flows.
+- Add a CI build workflow, an app icon, and a dark-mode pass.
