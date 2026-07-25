@@ -531,6 +531,16 @@ Progress:
 
 **Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
 
+## 24. Project Infrastructure and Compliance Docs `[~]`
+
+- Added `PRIVACY.md`: a draft privacy policy covering collected data, Firebase storage, children's privacy, retention, and deletion. Contains bracketed placeholders and must be reviewed by a lawyer for COPPA/FERPA before publication.
+- Added `ARCHITECTURE.md`: app modes and schemes, source layout, the store pattern and sync rules, the Firestore schema for every collection, a security-rules summary with known limitations, and the design system.
+- Added `.github/workflows/build.yml`: GitHub Actions CI that builds both `StandardWise Local` and `StandardWise Staging` schemes on every push and pull request so build breaks cannot land on `main` unnoticed.
+- Still to do: fill the privacy policy placeholders and get legal review, verify the first CI run has an Xcode version that supports the iOS 26 target (adjust the runner image if not), and keep `ARCHITECTURE.md` updated as schemas change.
+- Deferred for later: `CHANGELOG.md`, `firestore.indexes.json` wired into `firebase.json`, `LICENSE`, and small `.gitignore` additions.
+
+**Done when:** the privacy policy is legally reviewed and published, CI builds pass on GitHub, and the architecture doc stays current.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
