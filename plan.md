@@ -1,6 +1,6 @@
 # StandardWise Development Plan
 
-This plan reflects the active Xcode target as of July 2026. StandardWise is a SwiftUI app for standards-based student practice, with separate regular-user and admin experiences planned. The current app is an early local prototype with grade, subject, and standard dropdowns plus sample generated questions.
+This plan reflects the active Xcode target as of July 2026. StandardWise is a SwiftUI app for standards-based student practice with separate student and admin experiences. Students practice standards in 5-question sessions with streaks, mastery tracking, and instant feedback; admins manage questions, standards, users, and feedback with charts-based analytics. The app runs in Local mode (sample logins, on-device data) and Staging mode (Firebase Auth plus Firestore sync).
 
 ## Status Legend
 
@@ -390,7 +390,8 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Avoid committing local Xcode user-state files.
 - Use `plan.md` to decide the next feature before coding.
 - Verified the working tree is clean after the latest push.
-- Confirmed latest pushed commit: `3237646 Mark release workflow complete`.
+- Confirmed latest pushed commit: `f138fe5 Complete milestone 5: practice content for every sample subject and grade`.
+- Local commit `5222630 Redesign student and admin UI for milestone 23` is ready to push.
 - Confirmed the repo is connected to `git@github.com:Aymammet/StandardWise.git`.
 
 **Done when:** the GitHub repo always reflects the latest stable local work.
@@ -467,7 +468,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** StandardWise uses Firebase for production auth and shared cloud data instead of only local device storage.
 
-## 22. Bug Review and Fixes (July 2026) `[~]`
+## 22. Bug Review and Fixes (July 2026) `[x]`
 
 Bugs found during a code review of the Firebase staging work, with their fixes.
 
@@ -479,7 +480,7 @@ Bugs found during a code review of the Firebase staging work, with their fixes.
 - Known limitation: the Firestore `users` pre-check for `No username exists.` runs before sign-in, so it is unauthenticated and will be denied once security rules deploy. Login still works because Firebase Auth error mapping covers the message, but the pre-check becomes a wasted read. A proper fix needs a Cloud Function or disabling email enumeration protection.
 - Known limitation: distinct `No username exists.` and `Wrong password.` messages allow account enumeration. This is an accepted trade-off for now.
 - Known limitation: locally recorded attempts and feedback created while Firebase was unavailable are not re-uploaded later; only newly created records sync.
-- Still to do: rebuild and manually re-test the student and admin flows in the simulator after these fixes.
+- Rebuilt and relaunched the app in the simulator after the fixes; exercised student sign-in, practice sessions, and the admin dashboard, questions, and analytics pages during the milestone 23 redesign work.
 
 **Done when:** the fixes build cleanly and the affected flows (analytics grouping, student login without permission errors, admin editing during sync) are re-tested in the simulator.
 
@@ -525,7 +526,8 @@ Progress:
 - Redesigned the admin dashboard: compact one-line welcome, a today strip with attempts, active students, and accuracy, tappable metric cards with chevrons, a red alert treatment on the Feedback card and a `new` badge on the Feedback row when reports are waiting, one-line navigation rows, a toolbar `+` quick action that opens the Add Question form, a sign-out icon with a confirmation dialog on both admin and student screens, and a compact sync footer in Staging mode.
 - Gave admin metric cards and navigation rows visible white card surfaces with hairline borders after they blended into the iOS 26 grouped background.
 - Verified the app builds and runs after the admin dashboard redesign.
-- Still to do: app icon, dark-mode audit pass, and manual testing of the new flows.
+- Committed the redesign as `5222630 Redesign student and admin UI for milestone 23`.
+- Still to do: app icon, dark-mode audit pass, skeleton loading states on student screens, empty-state illustrations, an avatar chip and Recent card on the practice home, Sign in with Apple, and a fuller manual test pass of the new flows.
 
 **Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
 
@@ -543,4 +545,4 @@ Progress:
 
 ## Immediate Next Step
 
-- Finish milestone 22: rebuild and re-test the bug fixes in the simulator, then continue milestone 21 (deploy and test Firestore security rules).
+- Push the milestone 23 redesign commit, then continue milestone 21 (deploy and test Firestore security rules). Milestone 23 polish items (app icon, dark-mode audit, Sign in with Apple) can follow after the rules work.
