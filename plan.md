@@ -391,7 +391,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Use `plan.md` to decide the next feature before coding.
 - Verified the working tree is clean after the latest push.
 - Confirmed latest pushed commit: `f138fe5 Complete milestone 5: practice content for every sample subject and grade`.
-- Local commit `5222630 Redesign student and admin UI for milestone 23` is ready to push.
+- Local commits `5222630` (UI redesign) and later work are ready to push. Note: a commit that included a `.github/workflows/` file was rejected because Xcode's stored GitHub credential lacks the `workflow` scope; the workflow file was removed from history and saved for manual addition later (see milestone 24).
 - Confirmed the repo is connected to `git@github.com:Aymammet/StandardWise.git`.
 
 **Done when:** the GitHub repo always reflects the latest stable local work.
@@ -535,8 +535,8 @@ Progress:
 
 - Added `PRIVACY.md`: a draft privacy policy covering collected data, Firebase storage, children's privacy, retention, and deletion. Contains bracketed placeholders and must be reviewed by a lawyer for COPPA/FERPA before publication.
 - Added `ARCHITECTURE.md`: app modes and schemes, source layout, the store pattern and sync rules, the Firestore schema for every collection, a security-rules summary with known limitations, and the design system.
-- Added `.github/workflows/build.yml`: GitHub Actions CI that builds both `StandardWise Local` and `StandardWise Staging` schemes on every push and pull request so build breaks cannot land on `main` unnoticed.
-- Still to do: fill the privacy policy placeholders and get legal review, verify the first CI run has an Xcode version that supports the iOS 26 target (adjust the runner image if not), and keep `ARCHITECTURE.md` updated as schemas change.
+- Drafted a GitHub Actions CI workflow that builds both `StandardWise Local` and `StandardWise Staging` schemes on every push and pull request. Removed it from the commit because Xcode's stored GitHub credential lacks the `workflow` scope needed to push a `.github/workflows/` file, which blocked the push. The workflow content is saved locally; add it through the GitHub web editor, or re-authenticate the GitHub account in Xcode with a token that has the `workflow` scope and commit it from there.
+- Still to do: fill the privacy policy placeholders and get legal review, add the CI workflow file via GitHub's web editor, verify the first CI run has an Xcode version that supports the iOS 26 target (adjust the runner image if not), and keep `ARCHITECTURE.md` updated as schemas change.
 - Deferred for later: `CHANGELOG.md`, `firestore.indexes.json` wired into `firebase.json`, `LICENSE`, and small `.gitignore` additions.
 
 **Done when:** the privacy policy is legally reviewed and published, CI builds pass on GitHub, and the architecture doc stays current.
