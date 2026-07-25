@@ -83,6 +83,61 @@ enum QuestionBank {
             prompt: "Read an informational paragraph and cite one sentence that best supports the author's claim.",
             correctAnswer: "Answers will vary based on the paragraph.",
             explanation: "The evidence should directly support the claim, and the explanation should connect the quoted or paraphrased sentence back to the author's point."
+        ),
+        multipleChoiceQuestion(
+            standardCode: "6.PS.1",
+            prompt: "In which state of matter are the particles close together but still able to slide past each other?",
+            choices: [
+                AnswerChoice(id: "A", text: "Solid"),
+                AnswerChoice(id: "B", text: "Liquid"),
+                AnswerChoice(id: "C", text: "Gas"),
+                AnswerChoice(id: "D", text: "Plasma")
+            ],
+            correctAnswer: "B",
+            explanation: "In a liquid, particles stay close together but can move and slide past one another, which lets a liquid flow and take the shape of its container."
+        ),
+        inputQuestion(
+            standardCode: "6.PS.1",
+            prompt: "What are the small particles that make up all matter called?",
+            correctAnswer: "atoms",
+            alternateAnswers: ["atom"],
+            explanation: "All matter is made up of very small particles called atoms."
+        ),
+        multipleChoiceQuestion(
+            standardCode: "7.LS.1",
+            prompt: "In a food chain, which organisms use sunlight to make their own food?",
+            choices: [
+                AnswerChoice(id: "A", text: "Producers"),
+                AnswerChoice(id: "B", text: "Consumers"),
+                AnswerChoice(id: "C", text: "Decomposers"),
+                AnswerChoice(id: "D", text: "Predators")
+            ],
+            correctAnswer: "A",
+            explanation: "Producers, such as plants and algae, use sunlight to make their own food through photosynthesis. Energy then flows to consumers that eat them."
+        ),
+        inputQuestion(
+            standardCode: "A1.SSE.1",
+            prompt: "In the expression 5x + 12, what is the coefficient of x?",
+            correctAnswer: "5",
+            explanation: "A coefficient is the number multiplied by a variable. In 5x + 12, the variable x is multiplied by 5."
+        ),
+        multipleChoiceQuestion(
+            standardCode: "A1.SSE.1",
+            prompt: "In the expression 3x^2 + 7x + 4, which term is the constant?",
+            choices: [
+                AnswerChoice(id: "A", text: "3x^2"),
+                AnswerChoice(id: "B", text: "7x"),
+                AnswerChoice(id: "C", text: "4"),
+                AnswerChoice(id: "D", text: "x")
+            ],
+            correctAnswer: "C",
+            explanation: "A constant is a term without a variable. In 3x^2 + 7x + 4, the term 4 does not change when x changes."
+        ),
+        inputQuestion(
+            standardCode: "RL.9-10.1",
+            prompt: "After reading a story, cite one piece of strong textual evidence that supports an inference about a character's motivation.",
+            correctAnswer: "Answers will vary based on the story.",
+            explanation: "A strong response quotes or paraphrases a specific moment from the text and explains how it supports the inference about the character."
         )
     ]
 
@@ -190,12 +245,27 @@ final class QuestionStore: ObservableObject {
             LocalPersistence.save(questions, forKey: storageKey)
         }
 
+        mergeMissingSampleQuestions(questions)
+
         if usesFirebaseQuestions {
             syncStatusMessage = "Syncing questions from Firebase..."
             Task {
                 await loadFirebaseQuestions(fallbackQuestions: questions)
             }
         }
+    }
+
+    /// Appends sample questions missing from persisted local data so existing
+    /// installs pick up newly added sample content. Sample question IDs are
+    /// regenerated each launch, so matching uses standard code plus prompt.
+    private func mergeMissingSampleQuestions(_ sampleQuestions: [Question]) {
+        for question in sampleQuestions where !questions.contains(where: {
+            $0.standardCode == question.standardCode && $0.prompt == question.prompt
+        }) {
+            questions.append(question)
+        }
+
+        LocalPersistence.save(questions, forKey: storageKey)
     }
 
     var activeQuestions: [Question] {

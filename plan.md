@@ -73,7 +73,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the Generate Question button loads a real question object from sample data instead of creating one through hard-coded switch cases.
 
-## 5. Complete Regular User Practice Flow `[~]`
+## 5. Complete Regular User Practice Flow `[x]`
 
 - Show the main practice screen after regular-user login.
 - Present dropdowns in this order: Subject, Grade, Standard.
@@ -93,6 +93,9 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Added a Check Answer button that stays disabled until the user selects or enters an answer.
 - Reset answer state when a new question is generated.
 - Verified the app builds successfully after the practice-flow update.
+- Added sample standards for Science (6.PS.1 in 6th, 7.LS.1 in 7th) and 9th grade (A1.SSE.1 for Math, RL.9-10.1 for ELA) so every sample subject and grade has practice content.
+- Added sample multiple-choice and input questions for the new standards.
+- Added a sample-data merge on launch so existing installs with persisted local data pick up newly added sample subjects, grades, standards, and questions without duplicating admin-edited or archived entries.
 
 **Done when:** a regular user can choose a subject, grade, and standard, generate a matching question, answer it, and check the result.
 

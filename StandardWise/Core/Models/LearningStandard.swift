@@ -94,6 +94,12 @@ final class StandardStore: ObservableObject {
             LocalPersistence.save(standards, forKey: standardsStorageKey)
         }
 
+        mergeMissingSampleData(
+            sampleSubjects: subjects,
+            sampleGrades: grades,
+            sampleStandards: standards
+        )
+
         if usesFirebaseStandards {
             syncStatusMessage = "Syncing subjects and standards from Firebase..."
             Task {
@@ -104,6 +110,32 @@ final class StandardStore: ObservableObject {
                 )
             }
         }
+    }
+
+    /// Appends sample content that is missing from persisted local data so
+    /// existing installs pick up newly added sample subjects, grades, and
+    /// standards. Matching uses names/codes so admin-edited or archived
+    /// entries are not duplicated or resurrected.
+    private func mergeMissingSampleData(
+        sampleSubjects: [AcademicSubject],
+        sampleGrades: [GradeLevel],
+        sampleStandards: [LearningStandard]
+    ) {
+        for subject in sampleSubjects where !subjects.contains(where: { $0.id == subject.id || $0.name == subject.name }) {
+            subjects.append(subject)
+        }
+
+        for grade in sampleGrades where !grades.contains(where: { $0.id == grade.id || $0.name == grade.name }) {
+            grades.append(grade)
+        }
+
+        for standard in sampleStandards where !standards.contains(where: { $0.code == standard.code }) {
+            standards.append(standard)
+        }
+
+        LocalPersistence.save(subjects, forKey: subjectsStorageKey)
+        LocalPersistence.save(grades, forKey: gradesStorageKey)
+        LocalPersistence.save(standards, forKey: standardsStorageKey)
     }
 
     var activeSubjects: [AcademicSubject] {
@@ -308,6 +340,42 @@ extension LearningStandard {
             code: "RI.8.1",
             name: "Cite textual evidence from informational text",
             description: "Cite textual evidence that most strongly supports analysis of informational text."
+        ),
+        LearningStandard(
+            subjectID: StandardWiseSampleData.scienceSubjectID,
+            gradeID: StandardWiseSampleData.grade6ID,
+            subjectName: "Science",
+            gradeName: "6th",
+            code: "6.PS.1",
+            name: "Matter is made of small particles",
+            description: "All matter is made up of small particles called atoms, and the arrangement and motion of these particles determine the state of matter."
+        ),
+        LearningStandard(
+            subjectID: StandardWiseSampleData.scienceSubjectID,
+            gradeID: StandardWiseSampleData.grade7ID,
+            subjectName: "Science",
+            gradeName: "7th",
+            code: "7.LS.1",
+            name: "Energy flows through ecosystems",
+            description: "Matter is recycled and energy flows through ecosystems, moving from producers to consumers and decomposers."
+        ),
+        LearningStandard(
+            subjectID: StandardWiseSampleData.mathSubjectID,
+            gradeID: StandardWiseSampleData.grade9ID,
+            subjectName: "Math",
+            gradeName: "9th",
+            code: "A1.SSE.1",
+            name: "Interpret the structure of expressions",
+            description: "Interpret expressions that represent a quantity in terms of its context, identifying terms, factors, and coefficients."
+        ),
+        LearningStandard(
+            subjectID: StandardWiseSampleData.elaSubjectID,
+            gradeID: StandardWiseSampleData.grade9ID,
+            subjectName: "ELA",
+            gradeName: "9th",
+            code: "RL.9-10.1",
+            name: "Cite strong textual evidence",
+            description: "Cite strong and thorough textual evidence to support analysis of what the text says explicitly as well as inferences drawn from the text."
         )
     ]
 }
