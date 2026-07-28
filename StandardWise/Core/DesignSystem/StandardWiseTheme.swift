@@ -82,6 +82,53 @@ struct StandardWiseSkeletonBlock: View {
     }
 }
 
+struct StandardWiseEmptyState: View {
+    let systemImage: String
+    let title: String
+    let message: String
+    var actionTitle: String? = nil
+    var action: (() -> Void)? = nil
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.system(size: 34, weight: .semibold))
+                .foregroundStyle(StandardWiseTheme.accent)
+                .frame(width: 62, height: 62)
+                .background(StandardWiseTheme.accentSoft)
+                .clipShape(Circle())
+
+            VStack(spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+
+                Text(message)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .font(.footnote.weight(.semibold))
+                    .buttonStyle(.bordered)
+                    .tint(StandardWiseTheme.accent)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 22)
+        .padding(.horizontal, 16)
+        .background(StandardWiseTheme.cardBackground)
+        .overlay {
+            RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 extension View {
     func standardWiseField() -> some View {
         modifier(StandardWiseFieldModifier())

@@ -455,8 +455,11 @@ private struct AdminQuestionManagementView: View {
 
             Section("\(filteredQuestions.count) Questions") {
                 if filteredQuestions.isEmpty {
-                    Text("No questions match these filters.")
-                        .foregroundStyle(.secondary)
+                    StandardWiseEmptyState(
+                        systemImage: "line.3.horizontal.decrease.circle",
+                        title: "No matching questions",
+                        message: "Try clearing a filter or add a new question for this subject and standard."
+                    )
                 } else {
                     ForEach(filteredQuestions) { question in
                         Button {
@@ -1130,8 +1133,11 @@ private struct AdminStandardsManagementView: View {
     private var subjectsSection: some View {
         Section("Subjects") {
             if standardStore.subjects.isEmpty {
-                Text("No subjects yet.")
-                    .foregroundStyle(.secondary)
+                StandardWiseEmptyState(
+                    systemImage: "folder.badge.plus",
+                    title: "No subjects yet",
+                    message: "Add the first subject so admins can organize standards and questions."
+                )
             } else {
                 ForEach(standardStore.subjects.sorted { $0.name < $1.name }) { subject in
                     Button {
@@ -1159,8 +1165,11 @@ private struct AdminStandardsManagementView: View {
     private var standardsSection: some View {
         Section("Standards") {
             if standardStore.standards.isEmpty {
-                Text("No standards yet.")
-                    .foregroundStyle(.secondary)
+                StandardWiseEmptyState(
+                    systemImage: "list.bullet.clipboard",
+                    title: "No standards yet",
+                    message: "Add a standard code, name, and description before creating aligned questions."
+                )
             } else {
                 ForEach(standardStore.standards.sorted { $0.code < $1.code }) { standard in
                     Button {
@@ -1491,8 +1500,11 @@ private struct AdminFeedbackView: View {
 
             Section("\(filteredFeedback.count) Feedback Items") {
                 if filteredFeedback.isEmpty {
-                    Text("No feedback matches this filter.")
-                        .foregroundStyle(.secondary)
+                    StandardWiseEmptyState(
+                        systemImage: "bubble.left.and.text.bubble.right",
+                        title: "No feedback here",
+                        message: "When students report a question, their message and owner details will appear here."
+                    )
                 } else {
                     ForEach(filteredFeedback) { feedback in
                         AdminFeedbackRow(
@@ -1861,8 +1873,11 @@ private struct AdminAnalyticsView: View {
 
             if attempts.isEmpty {
                 Section {
-                    Text("Analytics will appear after students check answers.")
-                        .foregroundStyle(.secondary)
+                    StandardWiseEmptyState(
+                        systemImage: "chart.bar.xaxis",
+                        title: "Analytics need answers",
+                        message: "Charts will appear after students complete practice questions in Staging or Local mode."
+                    )
                 }
             } else {
                 AnalyticsGroupSection(
@@ -2079,8 +2094,11 @@ private struct AnalyticsQuestionSection: View {
     var body: some View {
         Section(title) {
             if items.isEmpty {
-                Text("No missed questions yet.")
-                    .foregroundStyle(.secondary)
+                StandardWiseEmptyState(
+                    systemImage: "checkmark.seal",
+                    title: "No missed questions yet",
+                    message: "Once students miss questions, the highest-priority review items will show here."
+                )
             } else {
                 ForEach(items.prefix(5)) { item in
                     VStack(alignment: .leading, spacing: 6) {

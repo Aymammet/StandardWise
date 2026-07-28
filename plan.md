@@ -535,7 +535,10 @@ Progress:
 - Added adaptive theme surfaces and borders for a broader light/dark-mode pass across the practice screen.
 - Added a student avatar chip, a stronger greeting card, a Recent Practice card, and a skeleton loading state on the practice home.
 - Verified the Local and Staging schemes build cleanly after the polish pass.
-- Still to do: empty-state illustrations, Sign in with Apple, and a fuller manual test pass of the new flows.
+- Added a shared friendly empty-state component and applied it to student no-standards/no-questions states plus admin empty states for filtered questions, subjects, standards, feedback, analytics, and missed-question review.
+- Added a one-tap fallback on the student no-questions card so students can switch to another available standard in the same subject and grade when one exists.
+- Verified the Local and Staging schemes build cleanly after the empty-state polish pass.
+- Still to do: Sign in with Apple and a fuller manual test pass of the new flows.
 
 **Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
 

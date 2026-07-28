@@ -383,8 +383,8 @@ struct PracticeView: View {
                 .fontWeight(.semibold)
 
             if filteredStandards.isEmpty {
-                friendlyNotice(
-                    icon: "binoculars",
+                StandardWiseEmptyState(
+                    systemImage: "binoculars",
                     title: "Nothing here yet",
                     message: "No standards for \(selectedSubject) in \(selectedGrade) yet. Try another subject or grade."
                 )
@@ -455,9 +455,16 @@ struct PracticeView: View {
             .accessibilityHint("Starts a practice session for the selected standard.")
 
             if !selectedStandardCode.isEmpty && availableQuestions.isEmpty {
-                Text("No questions for this standard yet. Try another one.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                StandardWiseEmptyState(
+                    systemImage: "questionmark.folder",
+                    title: "No questions yet",
+                    message: "This standard is ready, but it does not have practice questions yet. Try another standard for now.",
+                    actionTitle: nextAvailableStandard == nil ? nil : "Use \(nextAvailableStandard?.code ?? "another standard")"
+                ) {
+                    if let nextAvailableStandard {
+                        selectedStandardCode = nextAvailableStandard.code
+                    }
+                }
             }
         }
         .padding(.top, 4)
@@ -636,6 +643,18 @@ struct PracticeView: View {
             || standardStore.syncStatusMessage?.lowercased().contains("syncing") == true
     }
 
+    private var nextAvailableStandard: LearningStandard? {
+        filteredStandards.first { standard in
+            !QuestionBank.questions(
+                in: questionStore.questions,
+                standards: standardStore.standards,
+                subject: selectedSubject,
+                grade: selectedGrade,
+                standardCode: standard.code
+            ).isEmpty
+        }
+    }
+
     private func subjectIcon(for subject: String) -> String {
         switch subject.lowercased() {
         case "math":
@@ -647,27 +666,6 @@ struct PracticeView: View {
         default:
             return "square.grid.2x2"
         }
-    }
-
-    private func friendlyNotice(icon: String, title: String, message: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: icon)
-                .foregroundStyle(StandardWiseTheme.accent)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-
-                Text(message)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(StandardWiseTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
     }
 
     private func resolvedStandard(for question: Question) -> LearningStandard? {
