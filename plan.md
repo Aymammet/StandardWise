@@ -541,7 +541,7 @@ Progress:
 
 **Done when:** the privacy policy is legally reviewed and published, CI builds pass on GitHub, and the architecture doc stays current.
 
-## 25. Admin Feedback and Question Media Updates `[ ]`
+## 25. Admin Feedback and Question Media Updates `[~]`
 
 - Update the admin Feedback screen so admins can see who submitted each feedback report.
 - Show the feedback owner clearly, using the student's name and email when available.
@@ -554,6 +554,18 @@ Progress:
 - Store image metadata on the `Question` model and display attached question images in the student practice session.
 - Decide where uploaded images should live in Staging mode, likely Firebase Storage, and connect saved question records to the uploaded image URL.
 - Add loading, failure, and remove-photo states for image upload and editing.
+
+Progress:
+
+- Added feedback-owner visibility: the admin Feedback screen now shows an initials avatar plus the submitting student's name and email (or "Unknown student" if the user record can't be matched) on every feedback row, in both Local and Staging modes. `AdminFeedbackView` now takes the loaded `users` list.
+- Added `imageBase64: String?` to the `Question` model (Codable, default `nil`, backward compatible) and an `attachedImage` computed property that decodes it to a `UIImage`.
+- Added a Photo section to the admin Add/Edit Question form using `PhotosPicker` (PhotosUI, no new package dependency) to choose a photo from the library, with a live preview, a processing spinner while the photo is resized and compressed, a friendly error message if the photo can't be used, and a Remove Photo button.
+- Picked photos are resized to a max 1024px dimension and JPEG-compressed down to under ~700 KB before being base64-encoded, to stay well within Firestore's ~1 MiB document size limit alongside the question's other fields.
+- Attached images now display in the student practice session above the question prompt, and a small photo icon marks questions with an image in the admin question list.
+- Updated `FirebaseQuestionsService` to sync `imageBase64` and updated `firestore.rules`'s `validQuestion()` to allow and type-check the new optional field (still needs deployment, see milestone 21).
+- Decision: images are stored as compressed base64 directly on the question document instead of Firebase Storage. Adding a new Firebase Storage SPM product safely requires Xcode's package-management UI, which needs typed input not available through automated tooling in this environment. This keeps the feature shippable now; revisit Firebase Storage if photos need to be larger than a diagram or screenshot.
+- Camera capture was not implemented (Simulator has no camera; would need a `UIImagePickerController` wrapper and a camera-usage Info.plist entry). Only photo-library selection is available for now.
+- Still to do: rebuild and manually verify the photo picker and feedback-owner display on a device, decide on camera capture, and deploy the updated `firestore.rules`.
 
 **Done when:** admins can identify the user who submitted feedback, and admins can create questions that include a photo or screenshot from their device.
 

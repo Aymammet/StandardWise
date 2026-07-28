@@ -300,7 +300,8 @@ final class QuestionStore: ObservableObject {
             isActive: false,
             createdByAdminID: question.createdByAdminID,
             createdAt: question.createdAt,
-            updatedAt: Date()
+            updatedAt: Date(),
+            imageBase64: question.imageBase64
         )
 
         save(archivedQuestion)

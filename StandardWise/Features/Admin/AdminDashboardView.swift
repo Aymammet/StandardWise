@@ -1,5 +1,7 @@
 import Charts
+import PhotosUI
 import SwiftUI
+import UIKit
 
 struct AdminDashboardView: View {
     let user: StandardWiseUser
@@ -78,7 +80,8 @@ struct AdminDashboardView: View {
                         NavigationLink {
                             AdminFeedbackView(
                                 feedbackStore: feedbackStore,
-                                questionStore: questionStore
+                                questionStore: questionStore,
+                                users: users
                             )
                         } label: {
                             AdminMetricCard(
@@ -125,7 +128,8 @@ struct AdminDashboardView: View {
                                 badgeText: newFeedbackCount > 0 ? "\(newFeedbackCount) new" : nil,
                                 destination: AdminFeedbackView(
                                     feedbackStore: feedbackStore,
-                                    questionStore: questionStore
+                                    questionStore: questionStore,
+                                    users: users
                                 )
                             )
                             AdminNavigationRow(
@@ -598,6 +602,12 @@ private struct AdminQuestionRow: View {
                 Text(question.type.displayName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if question.imageBase64 != nil {
+                    Image(systemName: "photo")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Has attached photo")
+                }
                 Spacer()
                 if !question.isActive {
                     Text("Archived")
@@ -641,6 +651,10 @@ private struct AdminQuestionFormView: View {
     @State private var alternateAnswersText: String
     @State private var explanation: String
     @State private var validationMessage: String?
+    @State private var imageBase64: String?
+    @State private var photosPickerItem: PhotosPickerItem?
+    @State private var isProcessingImage = false
+    @State private var imageErrorMessage: String?
 
     init(question: Question?, standardStore: StandardStore, onSave: @escaping (Question) -> Void) {
         self.question = question
@@ -672,6 +686,7 @@ private struct AdminQuestionFormView: View {
         _inputCorrectAnswer = State(initialValue: type == .input ? question?.correctAnswer ?? "" : "")
         _alternateAnswersText = State(initialValue: question?.acceptedAlternateAnswers.joined(separator: ", ") ?? "")
         _explanation = State(initialValue: question?.explanation ?? "")
+        _imageBase64 = State(initialValue: question?.imageBase64)
     }
 
     private var filteredStandards: [LearningStandard] {
@@ -765,6 +780,50 @@ private struct AdminQuestionFormView: View {
                         .lineLimit(3...6)
                 }
 
+                Section("Photo") {
+                    if let uiImage = imageBase64.flatMap({ Data(base64Encoded: $0) }).flatMap(UIImage.init(data:)) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 160)
+                            .frame(maxWidth: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                            .accessibilityLabel("Attached question photo")
+                    }
+
+                    PhotosPicker(selection: $photosPickerItem, matching: .images) {
+                        Label(imageBase64 == nil ? "Add photo" : "Replace photo", systemImage: "photo")
+                    }
+                    .disabled(isProcessingImage)
+
+                    if isProcessingImage {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text("Processing photo...")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    if let imageErrorMessage {
+                        Text(imageErrorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(StandardWiseTheme.danger)
+                    }
+
+                    if imageBase64 != nil {
+                        Button("Remove photo", role: .destructive) {
+                            imageBase64 = nil
+                            photosPickerItem = nil
+                            imageErrorMessage = nil
+                        }
+                    }
+
+                    Text("Photos are resized and compressed to keep questions quick to load. Best for diagrams, screenshots, or short reading passages.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 if let validationMessage {
                     Section {
                         Text(validationMessage)
@@ -786,7 +845,68 @@ private struct AdminQuestionFormView: View {
                     }
                 }
             }
+            .onChange(of: photosPickerItem) { _, newItem in
+                loadPickedPhoto(newItem)
+            }
         }
+    }
+
+    private func loadPickedPhoto(_ item: PhotosPickerItem?) {
+        guard let item else { return }
+
+        isProcessingImage = true
+        imageErrorMessage = nil
+
+        Task {
+            defer { isProcessingImage = false }
+
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self) else {
+                    imageErrorMessage = "Could not load that photo. Try a different one."
+                    return
+                }
+
+                guard let base64 = Self.compressedImageBase64(from: data) else {
+                    imageErrorMessage = "That photo is too large or in an unsupported format. Try a smaller photo or screenshot."
+                    return
+                }
+
+                imageBase64 = base64
+            } catch {
+                imageErrorMessage = "Could not load that photo. Try again."
+            }
+        }
+    }
+
+    /// Resizes and JPEG-compresses picked photo data so it stays well under
+    /// the ~1 MiB Firestore document limit once base64-encoded alongside the
+    /// rest of the question's fields.
+    private static func compressedImageBase64(
+        from data: Data,
+        maxDimension: CGFloat = 1024,
+        maxByteCount: Int = 700_000
+    ) -> String? {
+        guard let image = UIImage(data: data) else { return nil }
+
+        let scale = min(1, maxDimension / max(image.size.width, image.size.height))
+        let targetSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        let resizedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+
+        var quality: CGFloat = 0.7
+        var jpegData = resizedImage.jpegData(compressionQuality: quality)
+
+        while let currentData = jpegData, currentData.count > maxByteCount, quality > 0.1 {
+            quality -= 0.1
+            jpegData = resizedImage.jpegData(compressionQuality: quality)
+        }
+
+        guard let finalData = jpegData, finalData.count <= maxByteCount else { return nil }
+
+        return finalData.base64EncodedString()
     }
 
     private func saveQuestion() {
@@ -808,7 +928,8 @@ private struct AdminQuestionFormView: View {
             isActive: question?.isActive ?? true,
             createdByAdminID: question?.createdByAdminID,
             createdAt: question?.createdAt ?? Date(),
-            updatedAt: Date()
+            updatedAt: Date(),
+            imageBase64: imageBase64
         )
 
         onSave(savedQuestion)
@@ -1302,6 +1423,7 @@ private struct AdminStandardFormView: View {
 private struct AdminFeedbackView: View {
     @ObservedObject var feedbackStore: FeedbackStore
     @ObservedObject var questionStore: QuestionStore
+    let users: [StandardWiseUser]
     @State private var statusFilter = "All"
 
     private var filteredFeedback: [QuestionFeedback] {
@@ -1352,7 +1474,8 @@ private struct AdminFeedbackView: View {
                     ForEach(filteredFeedback) { feedback in
                         AdminFeedbackRow(
                             feedback: feedback,
-                            question: question(for: feedback)
+                            question: question(for: feedback),
+                            owner: owner(for: feedback)
                         ) { status in
                             feedbackStore.updateStatus(for: feedback, status: status)
                         }
@@ -1379,11 +1502,16 @@ private struct AdminFeedbackView: View {
     private func question(for feedback: QuestionFeedback) -> Question? {
         questionStore.questions.first { $0.id == feedback.questionID }
     }
+
+    private func owner(for feedback: QuestionFeedback) -> StandardWiseUser? {
+        users.first { $0.id == feedback.userID }
+    }
 }
 
 private struct AdminFeedbackRow: View {
     let feedback: QuestionFeedback
     let question: Question?
+    let owner: StandardWiseUser?
     let onStatusChange: (FeedbackStatus) -> Void
 
     var body: some View {
@@ -1398,6 +1526,8 @@ private struct AdminFeedbackRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            ownerRow
 
             Text(feedback.message)
                 .font(.headline)
@@ -1445,6 +1575,49 @@ private struct AdminFeedbackRow: View {
         case .resolved:
             return .green
         }
+    }
+
+    @ViewBuilder
+    private var ownerRow: some View {
+        HStack(spacing: 8) {
+            Text(ownerInitials)
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundStyle(StandardWiseTheme.accent)
+                .frame(width: 24, height: 24)
+                .background(StandardWiseTheme.accentSoft)
+                .clipShape(Circle())
+
+            if let owner {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(owner.name)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                    Text(owner.email)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Text("Unknown student")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(owner.map { "Submitted by \($0.name), \($0.email)" } ?? "Submitted by an unknown student")
+    }
+
+    private var ownerInitials: String {
+        guard let name = owner?.name, !name.isEmpty else { return "?" }
+
+        let initials = name
+            .split(separator: " ")
+            .prefix(2)
+            .compactMap { $0.first }
+            .map(String.init)
+            .joined()
+
+        return initials.isEmpty ? "?" : initials.uppercased()
     }
 }
 

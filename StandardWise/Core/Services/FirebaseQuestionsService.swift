@@ -69,6 +69,10 @@ enum FirebaseQuestionsService {
             data["createdByAdminID"] = createdByAdminID.uuidString
         }
 
+        if let imageBase64 = question.imageBase64 {
+            data["imageBase64"] = imageBase64
+        }
+
         return data
     }
 
@@ -105,7 +109,8 @@ enum FirebaseQuestionsService {
             isActive: data["isActive"] as? Bool ?? true,
             createdByAdminID: uuid(from: data["createdByAdminID"]),
             createdAt: dateValue(from: data["createdAt"]) ?? Date(),
-            updatedAt: dateValue(from: data["updatedAt"]) ?? Date()
+            updatedAt: dateValue(from: data["updatedAt"]) ?? Date(),
+            imageBase64: data["imageBase64"] as? String
         )
     }
 

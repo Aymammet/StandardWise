@@ -94,7 +94,7 @@ Document IDs are the model's UUID string unless noted.
 | `subjects` | UUID | `id`, `name`, `isActive`, `updatedAt` |
 | `grades` | UUID | `id`, `name`, `sortOrder`, `updatedAt` |
 | `standards` | UUID | `id`, `subjectID`, `gradeID`, `subjectName`, `gradeName`, `code`, `name`, `description`, `isActive`, `updatedAt` |
-| `questions` | UUID | `id`, `subjectID`, `gradeID`, `standardID`, `standardCode`, `prompt`, `type` (`multipleChoice`\|`input`), `choices` [{`id`,`text`}], `correctAnswer`, `acceptedAlternateAnswers`, `explanation`, `difficulty?`, `isActive`, `createdByAdminID?`, `createdAt`, `updatedAt` |
+| `questions` | UUID | `id`, `subjectID`, `gradeID`, `standardID`, `standardCode`, `prompt`, `type` (`multipleChoice`\|`input`), `choices` [{`id`,`text`}], `correctAnswer`, `acceptedAlternateAnswers`, `explanation`, `difficulty?`, `isActive`, `createdByAdminID?`, `createdAt`, `updatedAt`, `imageBase64?` (base64 JPEG, resized/compressed to stay under ~700 KB so the document stays under Firestore's ~1 MiB limit) |
 | `feedback` | UUID | `id`, `userID` (app UUID), `questionID`, `message`, `status` (`new`\|`reviewed`\|`resolved`), `createdAt`, `updatedAt` |
 | `answerAttempts` | UUID | `id`, `userID` (app UUID), `questionID`, `subjectName`, `gradeName`, `standardCode`, `submittedAnswer`, `isCorrect`, `createdAt` |
 

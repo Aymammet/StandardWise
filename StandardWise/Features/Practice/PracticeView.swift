@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct PracticeView: View {
     private enum PracticeScreen {
@@ -662,6 +663,16 @@ private struct SessionQuestionCard: View {
                 .font(.title3)
                 .fontWeight(.semibold)
                 .fixedSize(horizontal: false, vertical: true)
+
+            if let attachedImage = question.attachedImage {
+                Image(uiImage: attachedImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .frame(maxHeight: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                    .accessibilityLabel("Image for this question")
+            }
 
             if question.type == .multipleChoice {
                 VStack(alignment: .leading, spacing: 8) {
