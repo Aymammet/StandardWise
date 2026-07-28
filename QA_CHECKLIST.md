@@ -4,10 +4,12 @@ This checklist tracks the main workflows that should be checked before each larg
 
 ## Latest Check
 
-- Date: July 24, 2026
-- Local build: Passed
-- Staging build: Passed
-- Simulator launch smoke test: Passed
+- Date: July 28, 2026
+- Local build: Passed with `CODE_SIGNING_ALLOWED=NO`
+- Staging build: Passed with `CODE_SIGNING_ALLOWED=NO`
+- Simulator launch smoke test: Not rerun
+- Firestore rules deploy: Passed for project `standardwise-15a83`
+- Firestore rules emulator smoke test: Blocked because Java is not installed
 - Automated test target: Not available yet
 
 ## Login
@@ -21,6 +23,17 @@ This checklist tracks the main workflows that should be checked before each larg
 - [ ] Staging regular-user login opens the practice screen.
 - [ ] Staging missing username behavior is verified after Firestore `users` records are seeded.
 - [ ] Staging wrong password behavior is verified after Firestore `users` records are seeded.
+
+## Firebase Rules
+
+- [x] `firestore.rules` deploys successfully to `standardwise-15a83`.
+- [x] Firebase CLI reports `firestore.rules` compiles successfully.
+- [ ] Admin can create/update a question with optional `imageBase64` in Staging.
+- [ ] Regular user can read questions in Staging.
+- [ ] Regular user cannot create/update questions in Staging.
+- [ ] Regular user can create feedback for their own profile in Staging.
+- [ ] Regular user cannot read the admin feedback collection in Staging.
+- [ ] Admin can read feedback and update feedback status in Staging.
 
 ## Student Practice
 
@@ -41,6 +54,7 @@ This checklist tracks the main workflows that should be checked before each larg
 - [ ] Regular user can open Send Feedback.
 - [ ] Regular user can submit feedback for the current question.
 - [ ] Admin can view submitted feedback.
+- [ ] Admin can see the submitting student's name and email on each feedback item.
 - [ ] Admin can update feedback status.
 
 ## Admin
@@ -49,6 +63,9 @@ This checklist tracks the main workflows that should be checked before each larg
 - [ ] Admin can open Questions.
 - [ ] Admin can add a multiple-choice question.
 - [ ] Admin can add a typed-answer question.
+- [ ] Admin can attach a photo from the photo library when adding or editing a question.
+- [ ] Attached question photos preview before saving.
+- [ ] Attached question photos display in the student practice session.
 - [ ] Admin can edit an existing question.
 - [ ] Admin can archive a question.
 - [ ] Admin can search and filter questions.
@@ -64,5 +81,7 @@ This checklist tracks the main workflows that should be checked before each larg
 ## Known Gaps
 
 - There is no automated test target yet.
+- Local Firestore rules emulator testing is blocked until Java is installed.
+- Physical-device testing is still needed for photo-library permissions and image picking.
 - Staging username-specific login messages depend on Firestore `users` documents being created for Firebase Auth users.
-- Staging still uses local app data for subjects, standards, questions, feedback, answer attempts, and analytics.
+- Updated Firestore rules for question images are deployed but still need real Staging app workflow testing.

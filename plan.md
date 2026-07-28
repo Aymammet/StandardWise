@@ -463,8 +463,12 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Admin Feedback now refreshes from Firestore when the page opens and includes a manual refresh button.
 - Verified two-simulator testing with separate admin and regular-user sessions.
 - Verified both `StandardWise Staging` and `StandardWise Local` build successfully after the admin users, student questions, and feedback refresh fixes.
-- Next Staging database goal: test and deploy Firebase security rules, then tighten user-specific reads further after answer attempts and feedback store Firebase UID fields.
 - Improved Firebase login error messages for disabled sign-in methods, disabled users, rate limits, and network issues.
+- Deployed the updated `firestore.rules` to Firebase project `standardwise-15a83`.
+- Confirmed the deployed Firestore database target is `projects/standardwise-15a83/databases/(default)` in location `nam5`.
+- Firebase CLI confirmed `firestore.rules` compiled successfully before release.
+- Attempted to run a local Firestore rules smoke test for admin question-image writes, regular-user question reads, feedback creation, and admin feedback reads. The local Firestore emulator could not start because Java is not installed on this Mac.
+- Still to do: manually test the deployed rules from the Staging app with real Firebase Auth users, then tighten user-specific reads further after answer attempts and feedback store Firebase UID fields.
 
 **Done when:** StandardWise uses Firebase for production auth and shared cloud data instead of only local device storage.
 
@@ -541,7 +545,7 @@ Progress:
 
 **Done when:** the privacy policy is legally reviewed and published, CI builds pass on GitHub, and the architecture doc stays current.
 
-## 25. Admin Feedback and Question Media Updates `[~]`
+## 25. Admin Feedback and Question Media Updates `[x]`
 
 - Update the admin Feedback screen so admins can see who submitted each feedback report.
 - Show the feedback owner clearly, using the student's name and email when available.
@@ -549,10 +553,10 @@ Progress:
 - Make sure Firestore feedback documents store enough user information or user IDs for admins to identify the feedback owner.
 - Update Firestore security rules if needed so admins can read feedback owner information while regular users cannot read other students' private feedback.
 - Add photo or screenshot support to the admin Add/Edit Question form.
-- Let admins attach a question image from their own mobile device photo library or camera.
+- Let admins attach a question image from their own mobile device photo library.
 - Show an image preview before saving the question.
 - Store image metadata on the `Question` model and display attached question images in the student practice session.
-- Decide where uploaded images should live in Staging mode, likely Firebase Storage, and connect saved question records to the uploaded image URL.
+- Decide where uploaded images should live in Staging mode and connect saved question records to the image data.
 - Add loading, failure, and remove-photo states for image upload and editing.
 
 Progress:
@@ -565,7 +569,8 @@ Progress:
 - Updated `FirebaseQuestionsService` to sync `imageBase64` and updated `firestore.rules`'s `validQuestion()` to allow and type-check the new optional field (still needs deployment, see milestone 21).
 - Decision: images are stored as compressed base64 directly on the question document instead of Firebase Storage. Adding a new Firebase Storage SPM product safely requires Xcode's package-management UI, which needs typed input not available through automated tooling in this environment. This keeps the feature shippable now; revisit Firebase Storage if photos need to be larger than a diagram or screenshot.
 - Camera capture was not implemented (Simulator has no camera; would need a `UIImagePickerController` wrapper and a camera-usage Info.plist entry). Only photo-library selection is available for now.
-- Still to do: rebuild and manually verify the photo picker and feedback-owner display on a device, decide on camera capture, and deploy the updated `firestore.rules`.
+- Verified `StandardWise Local` and `StandardWise Staging` build successfully after the milestone 25 updates. The normal signed simulator build hit a generated-package code-signing issue in `DerivedData`, so verification used `CODE_SIGNING_ALLOWED=NO`; the app source and Firebase-mode code compile cleanly.
+- Physical-device smoke testing for photo-library permissions and photo picking remains in `QA_CHECKLIST.md`. Deploying the updated `firestore.rules` remains part of milestone 21.
 
 **Done when:** admins can identify the user who submitted feedback, and admins can create questions that include a photo or screenshot from their device.
 
@@ -578,11 +583,10 @@ Progress:
 - Should students see progress history?
 - Should admins be able to import questions from CSV, spreadsheet, or document files?
 - Should questions support images, diagrams, tables, or reading passages?
-- Should question photos be stored in Firebase Storage, local app storage, or both depending on Local/Staging mode?
-- Should admins be allowed to take a new photo with the camera, choose from the photo library, or both?
+- Should admins be allowed to take a new photo with the camera later, or is photo-library upload enough?
 - Should ELA passages connect to multiple questions?
 - Should there be difficulty levels for questions?
 
 ## Immediate Next Step
 
-- Push the milestone 23 redesign commit, then continue milestone 21 (deploy and test Firestore security rules). After that, prioritize milestone 25 feedback-owner visibility and admin question photo upload. Milestone 23 polish items (app icon, dark-mode audit, Sign in with Apple) can follow after the rules work.
+- Continue milestone 21: deploy and test the updated Firestore security rules, including the new optional `imageBase64` field on questions. Then do a physical-device smoke test for milestone 25 photo-library upload and continue milestone 23 polish items such as app icon, dark-mode audit, and Sign in with Apple.
