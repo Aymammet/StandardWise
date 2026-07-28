@@ -541,6 +541,22 @@ Progress:
 
 **Done when:** the privacy policy is legally reviewed and published, CI builds pass on GitHub, and the architecture doc stays current.
 
+## 25. Admin Feedback and Question Media Updates `[ ]`
+
+- Update the admin Feedback screen so admins can see who submitted each feedback report.
+- Show the feedback owner clearly, using the student's name and email when available.
+- Keep feedback linked to the related user profile in both Local and Staging modes.
+- Make sure Firestore feedback documents store enough user information or user IDs for admins to identify the feedback owner.
+- Update Firestore security rules if needed so admins can read feedback owner information while regular users cannot read other students' private feedback.
+- Add photo or screenshot support to the admin Add/Edit Question form.
+- Let admins attach a question image from their own mobile device photo library or camera.
+- Show an image preview before saving the question.
+- Store image metadata on the `Question` model and display attached question images in the student practice session.
+- Decide where uploaded images should live in Staging mode, likely Firebase Storage, and connect saved question records to the uploaded image URL.
+- Add loading, failure, and remove-photo states for image upload and editing.
+
+**Done when:** admins can identify the user who submitted feedback, and admins can create questions that include a photo or screenshot from their device.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
@@ -550,9 +566,11 @@ Progress:
 - Should students see progress history?
 - Should admins be able to import questions from CSV, spreadsheet, or document files?
 - Should questions support images, diagrams, tables, or reading passages?
+- Should question photos be stored in Firebase Storage, local app storage, or both depending on Local/Staging mode?
+- Should admins be allowed to take a new photo with the camera, choose from the photo library, or both?
 - Should ELA passages connect to multiple questions?
 - Should there be difficulty levels for questions?
 
 ## Immediate Next Step
 
-- Push the milestone 23 redesign commit, then continue milestone 21 (deploy and test Firestore security rules). Milestone 23 polish items (app icon, dark-mode audit, Sign in with Apple) can follow after the rules work.
+- Push the milestone 23 redesign commit, then continue milestone 21 (deploy and test Firestore security rules). After that, prioritize milestone 25 feedback-owner visibility and admin question photo upload. Milestone 23 polish items (app icon, dark-mode audit, Sign in with Apple) can follow after the rules work.
