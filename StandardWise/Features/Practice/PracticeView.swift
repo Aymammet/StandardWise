@@ -79,7 +79,7 @@ struct PracticeView: View {
                 .animation(StandardWiseTheme.spring, value: screen)
                 .animation(StandardWiseTheme.spring, value: sessionIndex)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(StandardWiseTheme.pageBackground)
             .navigationTitle(screen == .home ? "Practice" : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -108,6 +108,10 @@ struct PracticeView: View {
         VStack(alignment: .leading, spacing: 16) {
             greetingHeader
             streakCard
+            recentPracticeCard
+            if isPracticeDataLoading {
+                practiceSkeleton
+            }
             subjectPicker
             gradePicker
             standardPicker
@@ -116,15 +120,42 @@ struct PracticeView: View {
     }
 
     private var greetingHeader: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Hi \(firstName)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Text("Ready to practice?")
-                .font(.title2)
+        HStack(spacing: 12) {
+            Text(userInitials)
+                .font(.headline)
                 .fontWeight(.bold)
+                .foregroundStyle(.white)
+                .frame(width: 48, height: 48)
+                .background(
+                    LinearGradient(
+                        colors: [StandardWiseTheme.accent, Color(red: 0.52, green: 0.42, blue: 0.92)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(Circle())
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Hi \(firstName)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Text(homeHeadline)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
         }
+        .padding()
+        .background(StandardWiseTheme.raisedCardBackground)
+        .overlay {
+            RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
         .accessibilityElement(children: .combine)
     }
 
@@ -176,6 +207,94 @@ struct PracticeView: View {
         )
     }
 
+    private var recentPracticeCard: some View {
+        let recent = userAttempts.first
+
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Recent", systemImage: "clock.arrow.circlepath")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(StandardWiseTheme.accent)
+
+                Spacer()
+
+                if !userAttempts.isEmpty {
+                    Text("\(userAttempts.count) total")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if let recent {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: recent.isCorrect ? "checkmark.circle.fill" : "target")
+                        .font(.title3)
+                        .foregroundStyle(recent.isCorrect ? StandardWiseTheme.success : StandardWiseTheme.warning)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(recent.standardCode)
+                            .font(.headline)
+
+                        Text("\(recent.subjectName) · \(recent.gradeName)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text(recent.isCorrect ? "Last answer was correct." : "Last answer is worth another try.")
+                            .font(.caption)
+                            .foregroundStyle(recent.isCorrect ? StandardWiseTheme.success : StandardWiseTheme.warning)
+                    }
+
+                    Spacer()
+                }
+            } else {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "sparkle.magnifyingglass")
+                        .font(.title3)
+                        .foregroundStyle(StandardWiseTheme.accent)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("No practice yet")
+                            .font(.headline)
+
+                        Text("Start a quick round and your latest standard will show here.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(StandardWiseTheme.raisedCardBackground)
+        .overlay {
+            RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+        .accessibilityElement(children: .combine)
+    }
+
+    private var practiceSkeleton: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                StandardWiseSkeletonBlock(width: 120, height: 14)
+                Spacer()
+                StandardWiseSkeletonBlock(width: 52, height: 14)
+            }
+
+            HStack(spacing: 10) {
+                StandardWiseSkeletonBlock(height: 54, cornerRadius: StandardWiseTheme.cardCornerRadius)
+                StandardWiseSkeletonBlock(height: 54, cornerRadius: StandardWiseTheme.cardCornerRadius)
+            }
+
+            StandardWiseSkeletonBlock(height: 52, cornerRadius: StandardWiseTheme.cardCornerRadius)
+        }
+        .padding()
+        .background(StandardWiseTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+        .accessibilityLabel("Practice content is loading")
+    }
+
     private var subjectPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Pick a subject")
@@ -201,11 +320,11 @@ struct PracticeView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(subject == selectedSubject ? StandardWiseTheme.accentSoft : Color(.secondarySystemBackground))
+                        .background(subject == selectedSubject ? StandardWiseTheme.accentSoft : StandardWiseTheme.cardBackground)
                         .overlay {
                             RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
                                 .stroke(
-                                    subject == selectedSubject ? StandardWiseTheme.accent : Color(.separator),
+                                    subject == selectedSubject ? StandardWiseTheme.accent : StandardWiseTheme.subtleBorder,
                                     lineWidth: subject == selectedSubject ? 2 : 0.5
                                 )
                         }
@@ -239,10 +358,10 @@ struct PracticeView: View {
                                 .foregroundStyle(grade == selectedGrade ? StandardWiseTheme.accent : .secondary)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(grade == selectedGrade ? StandardWiseTheme.accentSoft : Color(.secondarySystemBackground))
+                                .background(grade == selectedGrade ? StandardWiseTheme.accentSoft : StandardWiseTheme.cardBackground)
                                 .overlay {
                                     Capsule().stroke(
-                                        grade == selectedGrade ? StandardWiseTheme.accent : Color(.separator),
+                                        grade == selectedGrade ? StandardWiseTheme.accent : StandardWiseTheme.subtleBorder,
                                         lineWidth: grade == selectedGrade ? 1.5 : 0.5
                                     )
                                 }
@@ -309,10 +428,10 @@ struct PracticeView: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding()
-                    .background(Color(.secondarySystemBackground))
+                    .background(StandardWiseTheme.cardBackground)
                     .overlay {
                         RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
-                            .stroke(Color(.separator), lineWidth: 0.5)
+                            .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
                     }
                     .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
                 }
@@ -383,7 +502,7 @@ struct PracticeView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(width: 32, height: 32)
-                    .background(Color(.secondarySystemBackground))
+                    .background(StandardWiseTheme.cardBackground)
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -449,7 +568,7 @@ struct PracticeView: View {
                         .tint(StandardWiseTheme.accent)
                 }
                 .padding()
-                .background(Color(.secondarySystemBackground))
+                .background(StandardWiseTheme.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
             }
 
@@ -485,6 +604,38 @@ struct PracticeView: View {
         user.name.split(separator: " ").first.map(String.init) ?? user.name
     }
 
+    private var homeHeadline: String {
+        if attemptsTodayCount >= Self.dailyGoal {
+            return "Daily goal complete!"
+        }
+
+        if let recent = userAttempts.first {
+            return recent.isCorrect ? "Keep the streak going." : "Ready for a comeback?"
+        }
+
+        return "Ready to practice?"
+    }
+
+    private var userInitials: String {
+        let initials = user.name
+            .split(separator: " ")
+            .prefix(2)
+            .compactMap { $0.first }
+            .map(String.init)
+            .joined()
+
+        if !initials.isEmpty {
+            return initials.uppercased()
+        }
+
+        return user.email.first.map { String($0).uppercased() } ?? "S"
+    }
+
+    private var isPracticeDataLoading: Bool {
+        questionStore.syncStatusMessage?.lowercased().contains("syncing") == true
+            || standardStore.syncStatusMessage?.lowercased().contains("syncing") == true
+    }
+
     private func subjectIcon(for subject: String) -> String {
         switch subject.lowercased() {
         case "math":
@@ -515,7 +666,7 @@ struct PracticeView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground))
+        .background(StandardWiseTheme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
     }
 
@@ -659,11 +810,6 @@ private struct SessionQuestionCard: View {
                 .background(StandardWiseTheme.accentSoft)
                 .clipShape(Capsule())
 
-            Text(question.prompt)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .fixedSize(horizontal: false, vertical: true)
-
             if let attachedImage = question.attachedImage {
                 Image(uiImage: attachedImage)
                     .resizable()
@@ -673,6 +819,11 @@ private struct SessionQuestionCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
                     .accessibilityLabel("Image for this question")
             }
+
+            Text(question.prompt)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .fixedSize(horizontal: false, vertical: true)
 
             if question.type == .multipleChoice {
                 VStack(alignment: .leading, spacing: 8) {
@@ -793,7 +944,7 @@ private struct SessionQuestionCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground))
+        .background(StandardWiseTheme.raisedCardBackground)
         .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
         .shadow(
             color: StandardWiseTheme.cardShadowColor,
@@ -843,7 +994,7 @@ private struct SessionQuestionCard: View {
 
     private func choiceBackground(_ choice: AnswerChoice) -> Color {
         guard let answerResult else {
-            return choice.id == selectedChoiceID ? StandardWiseTheme.accentSoft : Color(.secondarySystemBackground)
+            return choice.id == selectedChoiceID ? StandardWiseTheme.accentSoft : StandardWiseTheme.cardBackground
         }
 
         if choice.id == question.correctAnswer {
@@ -854,12 +1005,12 @@ private struct SessionQuestionCard: View {
             return StandardWiseTheme.dangerSoft
         }
 
-        return Color(.secondarySystemBackground)
+        return StandardWiseTheme.cardBackground
     }
 
     private func choiceBorderColor(_ choice: AnswerChoice) -> Color {
         guard answerResult != nil else {
-            return choice.id == selectedChoiceID ? StandardWiseTheme.accent : Color(.separator)
+            return choice.id == selectedChoiceID ? StandardWiseTheme.accent : StandardWiseTheme.subtleBorder
         }
 
         if choice.id == question.correctAnswer {
@@ -870,7 +1021,7 @@ private struct SessionQuestionCard: View {
             return StandardWiseTheme.danger
         }
 
-        return Color(.separator)
+        return StandardWiseTheme.subtleBorder
     }
 
     private func choiceStatus(_ choice: AnswerChoice) -> ChoiceStatus? {

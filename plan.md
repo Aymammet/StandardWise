@@ -531,7 +531,11 @@ Progress:
 - Gave admin metric cards and navigation rows visible white card surfaces with hairline borders after they blended into the iOS 26 grouped background.
 - Verified the app builds and runs after the admin dashboard redesign.
 - Committed the redesign as `5222630 Redesign student and admin UI for milestone 23`.
-- Still to do: app icon, dark-mode audit pass, skeleton loading states on student screens, empty-state illustrations, an avatar chip and Recent card on the practice home, Sign in with Apple, and a fuller manual test pass of the new flows.
+- Added a real app icon asset and wired it into the Xcode project for the Local and Staging schemes.
+- Added adaptive theme surfaces and borders for a broader light/dark-mode pass across the practice screen.
+- Added a student avatar chip, a stronger greeting card, a Recent Practice card, and a skeleton loading state on the practice home.
+- Verified the Local and Staging schemes build cleanly after the polish pass.
+- Still to do: empty-state illustrations, Sign in with Apple, and a fuller manual test pass of the new flows.
 
 **Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
 
@@ -563,9 +567,10 @@ Progress:
 
 - Added feedback-owner visibility: the admin Feedback screen now shows an initials avatar plus the submitting student's name and email (or "Unknown student" if the user record can't be matched) on every feedback row, in both Local and Staging modes. `AdminFeedbackView` now takes the loaded `users` list.
 - Added `imageBase64: String?` to the `Question` model (Codable, default `nil`, backward compatible) and an `attachedImage` computed property that decodes it to a `UIImage`.
-- Added a Photo section to the admin Add/Edit Question form using `PhotosPicker` (PhotosUI, no new package dependency) to choose a photo from the library, with a live preview, a processing spinner while the photo is resized and compressed, a friendly error message if the photo can't be used, and a Remove Photo button.
+- Added image insertion directly inside the admin Add/Edit Question prompt area using `PhotosPicker` (PhotosUI, no new package dependency), with a live inline preview above the question text, a processing spinner while the photo is resized and compressed, a friendly error message if the photo can't be used, and an inline Remove action.
+- Replaced the prompt `TextField` with a multi-line `TextEditor` so admins can press return and write question text on new lines.
 - Picked photos are resized to a max 1024px dimension and JPEG-compressed down to under ~700 KB before being base64-encoded, to stay well within Firestore's ~1 MiB document size limit alongside the question's other fields.
-- Attached images now display in the student practice session above the question prompt, and a small photo icon marks questions with an image in the admin question list.
+- Attached images now display in the student practice session above the question prompt, matching the admin creation flow, and a small photo icon marks questions with an image in the admin question list.
 - Updated `FirebaseQuestionsService` to sync `imageBase64` and updated `firestore.rules`'s `validQuestion()` to allow and type-check the new optional field (still needs deployment, see milestone 21).
 - Decision: images are stored as compressed base64 directly on the question document instead of Firebase Storage. Adding a new Firebase Storage SPM product safely requires Xcode's package-management UI, which needs typed input not available through automated tooling in this environment. This keeps the feature shippable now; revisit Firebase Storage if photos need to be larger than a diagram or screenshot.
 - Camera capture was not implemented (Simulator has no camera; would need a `UIImagePickerController` wrapper and a camera-usage Info.plist entry). Only photo-library selection is available for now.

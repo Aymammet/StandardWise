@@ -699,6 +699,12 @@ private struct AdminQuestionFormView: View {
         standardStore.standards.first { $0.id == selectedStandardID } ?? filteredStandards[0]
     }
 
+    private var questionImage: UIImage? {
+        imageBase64
+            .flatMap { Data(base64Encoded: $0) }
+            .flatMap(UIImage.init(data:))
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -750,8 +756,69 @@ private struct AdminQuestionFormView: View {
                     }
                     .pickerStyle(.segmented)
 
-                    TextField("Question prompt", text: $prompt, axis: .vertical)
-                        .lineLimit(3...6)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            PhotosPicker(selection: $photosPickerItem, matching: .images) {
+                                Label(imageBase64 == nil ? "Insert image" : "Replace image", systemImage: "photo.badge.plus")
+                            }
+                            .disabled(isProcessingImage)
+
+                            Spacer()
+
+                            if isProcessingImage {
+                                ProgressView()
+                            }
+
+                            if imageBase64 != nil {
+                                Button("Remove", role: .destructive) {
+                                    imageBase64 = nil
+                                    photosPickerItem = nil
+                                    imageErrorMessage = nil
+                                }
+                            }
+                        }
+
+                        if let uiImage = questionImage {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxHeight: 180)
+                                .frame(maxWidth: .infinity)
+                                .background(StandardWiseTheme.raisedCardBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                                .accessibilityLabel("Inserted question image")
+                        }
+
+                        TextEditor(text: $prompt)
+                            .frame(minHeight: 120)
+                            .scrollContentBackground(.hidden)
+                            .padding(8)
+                            .background(StandardWiseTheme.raisedCardBackground)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                                    .stroke(StandardWiseTheme.subtleBorder)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                            .accessibilityLabel("Question prompt")
+
+                        if prompt.isEmpty {
+                            Text("Write the question text below the image, for example: What is the area of this triangle?")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if isProcessingImage {
+                            Text("Processing image...")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if let imageErrorMessage {
+                            Text(imageErrorMessage)
+                                .font(.footnote)
+                                .foregroundStyle(StandardWiseTheme.danger)
+                        }
+                    }
                 }
 
                 if questionType == .multipleChoice {
@@ -778,50 +845,6 @@ private struct AdminQuestionFormView: View {
                 Section("Explanation") {
                     TextField("Explain why the answer is correct", text: $explanation, axis: .vertical)
                         .lineLimit(3...6)
-                }
-
-                Section("Photo") {
-                    if let uiImage = imageBase64.flatMap({ Data(base64Encoded: $0) }).flatMap(UIImage.init(data:)) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 160)
-                            .frame(maxWidth: .infinity)
-                            .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
-                            .accessibilityLabel("Attached question photo")
-                    }
-
-                    PhotosPicker(selection: $photosPickerItem, matching: .images) {
-                        Label(imageBase64 == nil ? "Add photo" : "Replace photo", systemImage: "photo")
-                    }
-                    .disabled(isProcessingImage)
-
-                    if isProcessingImage {
-                        HStack(spacing: 8) {
-                            ProgressView()
-                            Text("Processing photo...")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    if let imageErrorMessage {
-                        Text(imageErrorMessage)
-                            .font(.footnote)
-                            .foregroundStyle(StandardWiseTheme.danger)
-                    }
-
-                    if imageBase64 != nil {
-                        Button("Remove photo", role: .destructive) {
-                            imageBase64 = nil
-                            photosPickerItem = nil
-                            imageErrorMessage = nil
-                        }
-                    }
-
-                    Text("Photos are resized and compressed to keep questions quick to load. Best for diagrams, screenshots, or short reading passages.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
 
                 if let validationMessage {

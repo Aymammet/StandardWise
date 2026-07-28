@@ -11,6 +11,15 @@ enum StandardWiseTheme {
     static let successSoft = Color(red: 0.11, green: 0.62, blue: 0.46).opacity(0.14)
     static let danger = Color(red: 0.85, green: 0.29, blue: 0.29)
     static let dangerSoft = Color(red: 0.85, green: 0.29, blue: 0.29).opacity(0.12)
+    static let warning = Color(red: 0.91, green: 0.58, blue: 0.16)
+    static let warningSoft = Color(red: 0.91, green: 0.58, blue: 0.16).opacity(0.14)
+
+    // MARK: Adaptive surfaces
+
+    static let pageBackground = Color(.systemGroupedBackground)
+    static let cardBackground = Color(.secondarySystemGroupedBackground)
+    static let raisedCardBackground = Color(.systemBackground)
+    static let subtleBorder = Color(.separator).opacity(0.55)
 
     // MARK: Shape and elevation
 
@@ -50,12 +59,26 @@ struct StandardWiseFieldModifier: ViewModifier {
         content
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(Color(.systemBackground))
+            .background(StandardWiseTheme.raisedCardBackground)
             .overlay {
                 RoundedRectangle(cornerRadius: StandardWiseTheme.controlCornerRadius)
-                    .stroke(Color(.separator), lineWidth: 0.5)
+                    .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
             }
             .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.controlCornerRadius))
+    }
+}
+
+struct StandardWiseSkeletonBlock: View {
+    var width: CGFloat? = nil
+    var height: CGFloat = 14
+    var cornerRadius: CGFloat = 7
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .fill(Color(.systemFill).opacity(0.55))
+            .frame(width: width, height: height)
+            .redacted(reason: .placeholder)
+            .accessibilityHidden(true)
     }
 }
 
