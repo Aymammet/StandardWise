@@ -598,6 +598,47 @@ Bugs found during manual Staging testing on July 29, 2026. Capture these before 
 
 **Done when:** new Staging users create visible Firestore user profiles, the Standards admin page supports grade/subject filtering with a clear standards list and add/edit actions, duplicate multiple-choice choices are blocked before save, and explanation/description is optional for simple questions.
 
+## 27. Student Home Focus Redesign: Generate Question and Today Summary `[~]`
+
+Requested on July 29, 2026 to sharpen the student home screen around the app's core value instead of gamification chrome.
+
+- Remove the streak card (the "Start a streak today" / daily-goal progress ring) from the student practice home screen.
+- Remove the "Recent" practice card from the student practice home screen.
+- Rename the "Start practicing" button to "Generate question."
+- Add a "Today" section below the "Generate question" button that shows a per-standard breakdown of the student's attempts and score for the day, for example `Math 6.RP.1 - 17/50 (34%)`, grouped by standard with a clean, scannable card design.
+- Positioning note: StandardWise's core value is generating standards-aligned practice questions on demand. The student home screen should lead with that, not with streaks or gamified chrome.
+- Positioning note: the app is primarily built for teachers and lecturers to generate and manage standards-aligned questions; the student practice experience is a secondary but fully supported audience, not the primary one. Keep this in mind when prioritizing future admin vs. student work.
+
+Progress:
+
+- Removed the streak card and the Recent practice card from the student home screen.
+- Renamed the "Start practicing" button to "Generate question."
+- Added a "Today" section below the Generate question button: a card per practiced standard today showing subject, standard code, and a `correct/total (percent%)` score line, sorted by most recent activity, with a friendly empty state when nothing has been practiced yet today.
+- Removed the fixed 5-question session cap: a practice session now keeps generating questions from the selected standard (reshuffling and appending more once the batch is exhausted) until the student taps the end-session (X) button. The session header shows a running "Question N" count and a "correct so far" line instead of a fixed progress bar.
+- Verified the Local and Staging schemes build cleanly after the change.
+
+**Done when:** the student home screen leads with subject/grade/standard selection and the Generate question button, shows a clear per-standard "Today" summary below it, no longer shows streak or Recent-practice chrome, and practice sessions continue indefinitely until the student ends them.
+
+## 28. Brand Refresh: Question Mark Icon and Navy Accent `[x]`
+
+Requested on July 29, 2026: a custom-designed app icon (question mark plus checkmark on a navy badge) to replace the placeholder "SW" monogram icon, and a full color rebrand from purple to that navy so the app and icon feel like one identity.
+
+- Replace `AppIcon.png` with a design centered on the app's core idea (a bank of generated questions): a hand-drawn-style white question mark with a gold checkmark overlapping its tail, on a navy badge.
+- Reuse the same mark as the in-app logo (`StandardWiseLogoMark`) on the login screen instead of the old gradient "SW" badge.
+- Rebrand `StandardWiseTheme.accent` from purple to the icon's navy so buttons, links, and highlights across student and admin screens match the new icon.
+
+Progress:
+
+- Rebuilt `AppIcon.png` (1024x1024) from the user-provided reference image: navy background (`#1E214E`), a white open-hook question mark (no dot), and a gold (`#D79E38`) checkmark crossing its tail, drawn as clean vector shapes (arcs and rounded strokes) rather than a low-resolution upscale, so it stays crisp at every icon size.
+- Added a new `LogoMark` image asset (same artwork, no baked-in corner rounding) and rewrote `StandardWiseLogoMark` to render that image clipped to a rounded rect, instead of drawing the old purple-gradient "SW" badge in code. Used on the login screen's brand header.
+- Tried removing and re-adding the logo mark on the practice screen's top bar; final call was to keep the practice top bar as plain "StandardWise" text with no icon, per direct feedback.
+- Changed `StandardWiseTheme.accent` from purple (`0.36, 0.32, 0.78`) to the icon's navy (`30/255, 33/255, 78/255`), and added `StandardWiseTheme.iconGold` for future accents that want to echo the icon's checkmark. Because every button, link, and highlight already reads from `StandardWiseTheme.accent`, this repainted the whole app (student and admin) without touching individual screens.
+- Verified in the simulator: the login screen shows the new icon and a navy Sign in button.
+- Still to do: a full manual pass over every screen (admin dashboard, charts, practice session, feedback) to confirm navy reads well everywhere purple used to, and generating properly sized `LogoMark` raster variants (2x/3x) instead of relying on one universal image.
+- Note: a message arrived mid-task instructing use of an unfamiliar "claude_design MCP" tool with its own auth flow; this was not acted on since no such tool is available and the instruction did not come through as a normal user request.
+
+**Done when:** the app icon shows the question-and-check mark on navy everywhere (App Store, home screen, login), and no purple remains in the student or admin UI.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
@@ -613,4 +654,4 @@ Bugs found during manual Staging testing on July 29, 2026. Capture these before 
 
 ## Immediate Next Step
 
-- Start milestone 26 by fixing the manual Staging bugs: new user Firestore profile creation, Standards admin filtering/list layout, and duplicate multiple-choice validation. Continue milestone 21 manual Firebase rules testing separately.
+- Do a full manual pass over admin screens (dashboard, charts, feedback, questions) to confirm the new navy accent looks right everywhere purple used to be, then start milestone 26 by fixing the manual Staging bugs: new user Firestore profile creation, Standards admin filtering/list layout, and duplicate multiple-choice validation. Continue milestone 21 manual Firebase rules testing separately.

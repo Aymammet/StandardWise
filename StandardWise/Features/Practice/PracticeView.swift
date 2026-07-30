@@ -23,7 +23,6 @@ struct PracticeView: View {
     @State private var sessionIndex = 0
     @State private var sessionResults: [Bool] = []
 
-    private static let sessionLength = 5
     private static let dailyGoal = 5
 
     private var subjects: [String] {
@@ -80,13 +79,8 @@ struct PracticeView: View {
                 .animation(StandardWiseTheme.spring, value: sessionIndex)
             }
             .background(StandardWiseTheme.pageBackground)
-            .navigationTitle(screen == .home ? "Practice" : "")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if screen == .home, let onLogout {
-                    StandardWiseSignOutButton(onSignOut: onLogout)
-                }
-            }
+            .toolbar { practiceToolbarContent }
             .onAppear {
                 alignSelectionWithAvailableStandards()
             }
@@ -102,13 +96,33 @@ struct PracticeView: View {
         }
     }
 
+    // MARK: - Brand
+
+    @ToolbarContentBuilder
+    private var practiceToolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            brandTitle
+        }
+
+        if screen == .home, let onLogout {
+            ToolbarItem {
+                StandardWiseSignOutButton(onSignOut: onLogout)
+            }
+        }
+    }
+
+    private var brandTitle: some View {
+        Text("StandardWise")
+            .font(.headline)
+            .fontWeight(.bold)
+            .accessibilityLabel("StandardWise")
+    }
+
     // MARK: - Home
 
     private var homeContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             greetingHeader
-            streakCard
-            recentPracticeCard
             if isPracticeDataLoading {
                 practiceSkeleton
             }
@@ -116,6 +130,7 @@ struct PracticeView: View {
             gradePicker
             standardPicker
             startButton
+            todaySummarySection
         }
     }
 
@@ -159,119 +174,58 @@ struct PracticeView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var streakCard: some View {
-        let streak = practiceStreakDays
-        let today = attemptsTodayCount
-        let progress = min(Double(today) / Double(Self.dailyGoal), 1)
+    private var todaySummarySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Today")
+                .font(.subheadline)
+                .fontWeight(.semibold)
 
-        return HStack(spacing: 12) {
-            Image(systemName: "flame.fill")
-                .font(.title2)
-                .foregroundStyle(StandardWiseTheme.accent)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(streak > 0 ? "\(streak)-day streak" : "Start a streak today")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-
-                Text("\(min(today, Self.dailyGoal)) of \(Self.dailyGoal) questions today")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            ZStack {
-                Circle()
-                    .stroke(Color(.systemFill), lineWidth: 4)
-
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(StandardWiseTheme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-
-                Text("\(Int(progress * 100))%")
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-            }
-            .frame(width: 44, height: 44)
-        }
-        .padding()
-        .background(StandardWiseTheme.accentSoft)
-        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            streak > 0
-                ? "\(streak) day practice streak. \(min(today, Self.dailyGoal)) of \(Self.dailyGoal) questions answered today."
-                : "No streak yet. \(min(today, Self.dailyGoal)) of \(Self.dailyGoal) questions answered today."
-        )
-    }
-
-    private var recentPracticeCard: some View {
-        let recent = userAttempts.first
-
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label("Recent", systemImage: "clock.arrow.circlepath")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(StandardWiseTheme.accent)
-
-                Spacer()
-
-                if !userAttempts.isEmpty {
-                    Text("\(userAttempts.count) total")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if let recent {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: recent.isCorrect ? "checkmark.circle.fill" : "target")
-                        .font(.title3)
-                        .foregroundStyle(recent.isCorrect ? StandardWiseTheme.success : StandardWiseTheme.warning)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(recent.standardCode)
-                            .font(.headline)
-
-                        Text("\(recent.subjectName) · \(recent.gradeName)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        Text(recent.isCorrect ? "Last answer was correct." : "Last answer is worth another try.")
-                            .font(.caption)
-                            .foregroundStyle(recent.isCorrect ? StandardWiseTheme.success : StandardWiseTheme.warning)
-                    }
-
-                    Spacer()
-                }
+            if todayStandardSummaries.isEmpty {
+                StandardWiseEmptyState(
+                    systemImage: "chart.bar.doc.horizontal",
+                    title: "No practice yet today",
+                    message: "Generate a question above and today's score by standard will show up here."
+                )
             } else {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "sparkle.magnifyingglass")
-                        .font(.title3)
-                        .foregroundStyle(StandardWiseTheme.accent)
+                VStack(spacing: 8) {
+                    ForEach(todayStandardSummaries) { summary in
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(summary.subjectName) \(summary.standardCode)")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("No practice yet")
-                            .font(.headline)
+                                Text("\(summary.correct)/\(summary.total) correct")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
 
-                        Text("Start a quick round and your latest standard will show here.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            Spacer()
+
+                            Text("\(summary.percent)%")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(percentColor(for: summary.percent))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(percentColor(for: summary.percent).opacity(0.14))
+                                .clipShape(Capsule())
+                        }
+                        .padding()
+                        .background(StandardWiseTheme.raisedCardBackground)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
+                                .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel(
+                            "\(summary.subjectName) \(summary.standardCode): \(summary.correct) of \(summary.total) correct, \(summary.percent) percent."
+                        )
                     }
                 }
             }
         }
-        .padding()
-        .background(StandardWiseTheme.raisedCardBackground)
-        .overlay {
-            RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius)
-                .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
-        .accessibilityElement(children: .combine)
     }
 
     private var practiceSkeleton: some View {
@@ -448,11 +402,11 @@ struct PracticeView: View {
             Button {
                 startSession()
             } label: {
-                Text("Start practicing")
+                Text("Generate question")
             }
             .buttonStyle(StandardWisePrimaryButtonStyle())
             .disabled(selectedStandardCode.isEmpty || availableQuestions.isEmpty)
-            .accessibilityHint("Starts a practice session for the selected standard.")
+            .accessibilityHint("Generates practice questions for the selected standard.")
 
             if !selectedStandardCode.isEmpty && availableQuestions.isEmpty {
                 StandardWiseEmptyState(
@@ -481,7 +435,6 @@ struct PracticeView: View {
                     user: user,
                     question: question,
                     standard: resolvedStandard(for: question),
-                    isLastQuestion: sessionIndex == sessionQuestions.count - 1,
                     feedbackStore: feedbackStore,
                     answerAttemptStore: answerAttemptStore,
                     onAnswered: { isCorrect in
@@ -501,7 +454,9 @@ struct PracticeView: View {
     }
 
     private var sessionProgressHeader: some View {
-        HStack(spacing: 12) {
+        let correctSoFar = sessionResults.filter { $0 }.count
+
+        return HStack(spacing: 12) {
             Button {
                 endSessionEarly()
             } label: {
@@ -515,17 +470,22 @@ struct PracticeView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("End practice session")
 
-            ProgressView(value: Double(sessionIndex), total: Double(max(sessionQuestions.count, 1)))
-                .tint(StandardWiseTheme.accent)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Question \(sessionIndex + 1)")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
 
-            Text("\(min(sessionIndex + 1, sessionQuestions.count))/\(sessionQuestions.count)")
-                .font(.footnote)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
+                if !sessionResults.isEmpty {
+                    Text("\(correctSoFar)/\(sessionResults.count) correct so far")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Question \(min(sessionIndex + 1, sessionQuestions.count)) of \(sessionQuestions.count)")
+        .accessibilityLabel("Question \(sessionIndex + 1). \(correctSoFar) of \(sessionResults.count) correct so far.")
     }
 
     private var currentQuestion: Question? {
@@ -686,30 +646,31 @@ struct PracticeView: View {
         return userAttempts.filter { calendar.isDateInToday($0.createdAt) }.count
     }
 
-    private var practiceStreakDays: Int {
+    private var todayStandardSummaries: [StandardActivitySummary] {
         let calendar = Calendar.current
-        let attemptDays = Set(userAttempts.map { calendar.startOfDay(for: $0.createdAt) })
-        guard !attemptDays.isEmpty else { return 0 }
+        let todaysAttempts = userAttempts.filter { calendar.isDateInToday($0.createdAt) }
+        let grouped = Dictionary(grouping: todaysAttempts, by: \.standardCode)
 
-        var day = calendar.startOfDay(for: Date())
-        if !attemptDays.contains(day) {
-            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: day),
-                  attemptDays.contains(yesterday) else { return 0 }
-            day = yesterday
+        return grouped.map { standardCode, attempts in
+            StandardActivitySummary(
+                standardCode: standardCode,
+                subjectName: attempts.first?.subjectName ?? "",
+                correct: attempts.filter(\.isCorrect).count,
+                total: attempts.count,
+                latestAttemptAt: attempts.map(\.createdAt).max() ?? .distantPast
+            )
         }
+        .sorted { $0.latestAttemptAt > $1.latestAttemptAt }
+    }
 
-        var streak = 0
-        while attemptDays.contains(day) {
-            streak += 1
-            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
-            day = previous
-        }
-
-        return streak
+    private func percentColor(for percent: Int) -> Color {
+        if percent >= 80 { return StandardWiseTheme.success }
+        if percent >= 50 { return StandardWiseTheme.warning }
+        return StandardWiseTheme.danger
     }
 
     private func startSession() {
-        let questions = Array(availableQuestions.shuffled().prefix(Self.sessionLength))
+        let questions = availableQuestions.shuffled()
         guard !questions.isEmpty else { return }
 
         sessionQuestions = questions
@@ -720,11 +681,18 @@ struct PracticeView: View {
     }
 
     private func advanceSession() {
-        if sessionIndex < sessionQuestions.count - 1 {
-            sessionIndex += 1
-        } else {
-            screen = .summary
+        if sessionIndex >= sessionQuestions.count - 1 {
+            appendMoreQuestions()
         }
+        sessionIndex += 1
+    }
+
+    /// Keeps practice going indefinitely: once the shuffled batch runs out,
+    /// reshuffle the same available questions and keep appending rather than
+    /// forcing the student to stop at a fixed count.
+    private func appendMoreQuestions() {
+        guard !availableQuestions.isEmpty else { return }
+        sessionQuestions.append(contentsOf: availableQuestions.shuffled())
     }
 
     private func endSessionEarly() {
@@ -761,13 +729,28 @@ struct PracticeView: View {
     }
 }
 
+// MARK: - Today summary
+
+private struct StandardActivitySummary: Identifiable {
+    var id: String { standardCode }
+    let standardCode: String
+    let subjectName: String
+    let correct: Int
+    let total: Int
+    let latestAttemptAt: Date
+
+    var percent: Int {
+        guard total > 0 else { return 0 }
+        return Int((Double(correct) / Double(total) * 100).rounded())
+    }
+}
+
 // MARK: - Session question card
 
 private struct SessionQuestionCard: View {
     let user: StandardWiseUser
     let question: Question
     let standard: LearningStandard?
-    let isLastQuestion: Bool
     @ObservedObject var feedbackStore: FeedbackStore
     @ObservedObject var answerAttemptStore: AnswerAttemptStore
     let onAnswered: (Bool) -> Void
@@ -921,11 +904,11 @@ private struct SessionQuestionCard: View {
                         : "Explanation: \(question.explanation)"
                 )
 
-                Button(isLastQuestion ? "See results" : "Next question") {
+                Button("Next question") {
                     onNext()
                 }
                 .buttonStyle(StandardWisePrimaryButtonStyle())
-                .accessibilityHint(isLastQuestion ? "Shows your session results." : "Shows the next question.")
+                .accessibilityHint("Shows the next question.")
 
                 Button {
                     isShowingFeedbackForm = true

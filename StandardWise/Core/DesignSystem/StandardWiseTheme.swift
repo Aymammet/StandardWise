@@ -5,8 +5,11 @@ enum StandardWiseTheme {
     // MARK: Brand colors
 
     /// Primary brand accent used for student-facing controls and highlights.
-    static let accent = Color(red: 0.36, green: 0.32, blue: 0.78)
-    static let accentSoft = Color(red: 0.36, green: 0.32, blue: 0.78).opacity(0.12)
+    /// Matches the app icon's navy badge (question mark + checkmark mark).
+    static let accent = Color(red: 30.0 / 255.0, green: 33.0 / 255.0, blue: 78.0 / 255.0)
+    static let accentSoft = Color(red: 30.0 / 255.0, green: 33.0 / 255.0, blue: 78.0 / 255.0).opacity(0.12)
+    /// Gold checkmark accent from the app icon, for small highlights that want to echo the icon.
+    static let iconGold = Color(red: 215.0 / 255.0, green: 158.0 / 255.0, blue: 56.0 / 255.0)
     static let success = Color(red: 0.11, green: 0.62, blue: 0.46)
     static let successSoft = Color(red: 0.11, green: 0.62, blue: 0.46).opacity(0.14)
     static let danger = Color(red: 0.85, green: 0.29, blue: 0.29)
@@ -65,6 +68,25 @@ struct StandardWiseFieldModifier: ViewModifier {
                     .stroke(StandardWiseTheme.subtleBorder, lineWidth: 0.5)
             }
             .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.controlCornerRadius))
+    }
+}
+
+/// Shared brand mark: a rounded "SW" badge with a purple gradient and sparkle
+/// accent, matching the app icon design. Used on the login screen and the
+/// practice screen's top bar so the brand looks the same everywhere.
+struct StandardWiseLogoMark: View {
+    var size: CGFloat = 44
+    var cornerRadius: CGFloat? = nil
+
+    private var radius: CGFloat { cornerRadius ?? size * 0.28 }
+
+    var body: some View {
+        Image("LogoMark")
+            .resizable()
+            .scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .accessibilityHidden(true)
     }
 }
 

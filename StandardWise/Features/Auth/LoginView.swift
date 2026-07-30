@@ -63,12 +63,7 @@ struct LoginView: View {
 
     private var brandHeader: some View {
         VStack(spacing: 12) {
-            Image(systemName: "graduationcap.fill")
-                .font(.system(size: 30))
-                .foregroundStyle(StandardWiseTheme.accent)
-                .frame(width: 64, height: 64)
-                .background(StandardWiseTheme.accentSoft)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
+            StandardWiseLogoMark(size: 68)
 
             VStack(spacing: 4) {
                 Text("StandardWise")
