@@ -582,6 +582,22 @@ Progress:
 
 **Done when:** admins can identify the user who submitted feedback, and admins can create questions that include a photo or screenshot from their device.
 
+## 26. Manual Staging Test Bug Fixes `[ ]`
+
+Bugs found during manual Staging testing on July 29, 2026. Capture these before fixing so the testing trail stays clear.
+
+- Bug: After creating a new regular user in the Staging app, the user can sign in, but the new user does not appear in the Firebase `users` collection. Firebase still shows only the four old user profiles.
+- Expected: New Staging user registration should create or sync a matching Firestore user profile document so admins can see the user in Firebase and in the app's Admin Users page.
+- Bug: The admin Standards screen does not list standards in the requested grouped/filterable way.
+- Expected: Standards should be browsable with a Grade dropdown first, then a Subject dropdown, then a list of matching standards below, for example `6.RP.1: Intro to ratios`, `6.RP.2: Unit rates`, and `6.RP.3: Equivalent ratios`.
+- Expected: On the same Standards screen, admins should still be able to add and edit standards.
+- Bug: The admin Add/Edit Question form allows duplicate multiple-choice answer choices. Example: choices B and C can be exactly the same and the app still saves the question.
+- Expected: Multiple-choice questions should reject duplicate choices and show a clear validation message before saving.
+- Product correction: The admin Add/Edit Question form currently requires an explanation/description for every question.
+- Expected: Explanation/description should be optional. Admins should be able to save simple questions with that field left blank.
+
+**Done when:** new Staging users create visible Firestore user profiles, the Standards admin page supports grade/subject filtering with a clear standards list and add/edit actions, duplicate multiple-choice choices are blocked before save, and explanation/description is optional for simple questions.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
@@ -597,4 +613,4 @@ Progress:
 
 ## Immediate Next Step
 
-- Continue milestone 21: deploy and test the updated Firestore security rules, including the new optional `imageBase64` field on questions. Then do a physical-device smoke test for milestone 25 photo-library upload and continue milestone 23 polish items such as app icon, dark-mode audit, and Sign in with Apple.
+- Start milestone 26 by fixing the manual Staging bugs: new user Firestore profile creation, Standards admin filtering/list layout, and duplicate multiple-choice validation. Continue milestone 21 manual Firebase rules testing separately.
