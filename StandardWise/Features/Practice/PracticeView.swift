@@ -120,7 +120,6 @@ struct PracticeView: View {
 
     private var homeContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            homeBrandHeader
             greetingHeader
             if isPracticeDataLoading {
                 practiceSkeleton
@@ -131,17 +130,6 @@ struct PracticeView: View {
             startButton
             todaySummarySection
         }
-    }
-
-    private var homeBrandHeader: some View {
-        Text("Standardwise")
-            .font(.title3)
-            .fontWeight(.bold)
-            .foregroundStyle(StandardWiseTheme.accent)
-        .frame(maxWidth: .infinity)
-        .padding(.top, 4)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Standardwise")
     }
 
     private var greetingHeader: some View {
@@ -169,6 +157,8 @@ struct PracticeView: View {
             }
 
             Spacer()
+
+            StandardWiseGlyphMark(size: 34)
         }
         .padding()
         .background(StandardWiseTheme.raisedCardBackground)

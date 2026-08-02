@@ -89,6 +89,65 @@ struct StandardWiseLogoMark: View {
     }
 }
 
+/// Just the question-mark-and-checkmark glyph from the app icon, with no
+/// background badge. Used inline next to text (e.g. the practice home
+/// greeting card) where a boxed logo mark would be too heavy.
+struct StandardWiseGlyphMark: View {
+    var size: CGFloat = 34
+
+    var body: some View {
+        ZStack {
+            StandardWiseHookShape()
+                .stroke(StandardWiseTheme.accent, style: StrokeStyle(lineWidth: size * 0.11, lineCap: .round, lineJoin: .round))
+
+            Circle()
+                .fill(StandardWiseTheme.accent)
+                .frame(width: size * 0.11, height: size * 0.11)
+                .position(x: size * 0.28, y: size * 0.34)
+
+            StandardWiseCheckShape()
+                .stroke(StandardWiseTheme.iconGold, style: StrokeStyle(lineWidth: size * 0.11, lineCap: .round, lineJoin: .round))
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+}
+
+private struct StandardWiseHookShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let s = rect.width / 100
+        var path = Path()
+        path.move(to: CGPoint(x: 28 * s, y: 34 * s))
+        path.addCurve(
+            to: CGPoint(x: 58 * s, y: 16 * s),
+            control1: CGPoint(x: 28 * s, y: 18 * s),
+            control2: CGPoint(x: 44 * s, y: 10 * s)
+        )
+        path.addCurve(
+            to: CGPoint(x: 60 * s, y: 46 * s),
+            control1: CGPoint(x: 72 * s, y: 22 * s),
+            control2: CGPoint(x: 74 * s, y: 40 * s)
+        )
+        path.addCurve(
+            to: CGPoint(x: 50 * s, y: 62 * s),
+            control1: CGPoint(x: 52 * s, y: 49 * s),
+            control2: CGPoint(x: 50 * s, y: 54 * s)
+        )
+        return path
+    }
+}
+
+private struct StandardWiseCheckShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let s = rect.width / 100
+        var path = Path()
+        path.move(to: CGPoint(x: 38 * s, y: 78 * s))
+        path.addLine(to: CGPoint(x: 48 * s, y: 90 * s))
+        path.addLine(to: CGPoint(x: 70 * s, y: 62 * s))
+        return path
+    }
+}
+
 struct StandardWiseSkeletonBlock: View {
     var width: CGFloat? = nil
     var height: CGFloat = 14
