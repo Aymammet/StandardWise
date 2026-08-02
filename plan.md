@@ -396,7 +396,7 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 
 **Done when:** the GitHub repo always reflects the latest stable local work.
 
-## 21. Add Firebase for Production Data `[~]`
+## 21. Add Firebase for Production Data `[x]`
 
 - Create a Firebase project for StandardWise.
 - Add the iOS Firebase config file to the Xcode app target.
@@ -468,7 +468,8 @@ This plan reflects the active Xcode target as of July 2026. StandardWise is a Sw
 - Confirmed the deployed Firestore database target is `projects/standardwise-15a83/databases/(default)` in location `nam5`.
 - Firebase CLI confirmed `firestore.rules` compiled successfully before release.
 - Attempted to run a local Firestore rules smoke test for admin question-image writes, regular-user question reads, feedback creation, and admin feedback reads. The local Firestore emulator could not start because Java is not installed on this Mac.
-- Still to do: manually test the deployed rules from the Staging app with real Firebase Auth users, then tighten user-specific reads further after answer attempts and feedback store Firebase UID fields.
+- Manual Staging testing passed: deployed Firestore rules work correctly with real Firebase Auth users. Admin users can manage protected app data, and regular users can practice, submit feedback, and create answer attempts without editing admin-only data.
+- Later hardening: tighten user-specific reads further after answer attempts and feedback store Firebase UID fields.
 
 **Done when:** StandardWise uses Firebase for production auth and shared cloud data instead of only local device storage.
 
@@ -538,7 +539,10 @@ Progress:
 - Added a shared friendly empty-state component and applied it to student no-standards/no-questions states plus admin empty states for filtered questions, subjects, standards, feedback, analytics, and missed-question review.
 - Added a one-tap fallback on the student no-questions card so students can switch to another available standard in the same subject and grade when one exists.
 - Verified the Local and Staging schemes build cleanly after the empty-state polish pass.
-- Still to do: Sign in with Apple and a fuller manual test pass of the new flows.
+- Added Sign in with Apple to the sign-in and create-account screens using Apple's native button, secure nonce generation, Firebase's Apple OAuth credential flow, regular-user profile creation/fallback, and the required Apple sign-in entitlement.
+- Verified the Local and Staging schemes build cleanly after adding Sign in with Apple.
+- Manual setup still needed: enable Sign in with Apple for the app identifier in Apple Developer/Xcode signing, enable Apple as a Firebase Authentication provider, and test on a signed simulator or physical device with an Apple ID.
+- Still to do: a fuller manual test pass of the redesigned flows.
 
 **Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
 
@@ -688,6 +692,22 @@ Completed:
 - Updated Today summary rows and accessibility labels to use `Subject - StandardCode`.
 - Verified the `StandardWise Local` scheme builds successfully.
 
+## 31. Email Confirmation and Account Activation `[ ]`
+
+Require newly registered users to confirm their email before they can use StandardWise.
+
+- After a user registers with email/password, send a confirmation email containing an activation link to the user's email address.
+- Put the newly registered account on hold until the user activates the account from that email link.
+- If the user tries to log in before confirming the email, show this message: `Please check your email and confirm your email by using activation link sent to you.`
+- When the user clicks the activation link, activate the account so the user can log in and use StandardWise.
+- After successful activation, show this message: `Your email is activated. Start using StandardWise app.`
+- Make sure this works in Staging with Firebase Authentication email verification.
+- Decide whether admin-created users should also require email confirmation or whether this applies only to self-registered regular users.
+- Add friendly resend-confirmation-email behavior if the user did not receive the email.
+- Test the full flow: register, receive email, blocked login before activation, activate by link, successful login after activation.
+
+**Done when:** new self-registered users cannot use the app until their email is confirmed, blocked users see a clear activation message, and confirmed users can start using StandardWise after clicking the email activation link.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
@@ -703,4 +723,4 @@ Completed:
 
 ## Immediate Next Step
 
-- Start milestone 29 by showing both color options, old purple and navy/gold, for manual observation. Then continue milestone 21 manual Firebase security rules testing and milestone 23 Sign in with Apple.
+- Skip milestone 29 for now per product decision. Continue milestone 23 with manual Sign in with Apple setup/testing and a fuller manual pass of the redesigned flows. Milestone 31 is planned next, but deferred until milestone 23 is finished.

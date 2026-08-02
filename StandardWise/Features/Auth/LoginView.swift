@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 struct LoginView: View {
@@ -17,6 +18,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
+    @State private var currentAppleNonce: String?
     @FocusState private var focusedField: AuthField?
 
     private var canSubmit: Bool {
@@ -24,7 +26,10 @@ struct LoginView: View {
     }
 
     private var isBusy: Bool {
-        session.isLoggingIn || session.isRegistering || session.isSendingPasswordReset
+        session.isLoggingIn
+            || session.isRegistering
+            || session.isSigningInWithApple
+            || session.isSendingPasswordReset
     }
 
     var body: some View {
@@ -103,6 +108,8 @@ struct LoginView: View {
             .disabled(!canSubmit || isBusy)
             .accessibilityHint("Signs in to your StandardWise account.")
 
+            appleSignInSection
+
             Button("Forgot password?") {
                 changeScreen(to: .forgotPassword)
             }
@@ -144,6 +151,8 @@ struct LoginView: View {
             .buttonStyle(StandardWisePrimaryButtonStyle())
             .disabled(!canSubmit || isBusy)
             .accessibilityHint("Creates a new student account.")
+
+            appleSignInSection
         }
         .padding(20)
         .background(Color(.secondarySystemBackground))
@@ -277,6 +286,53 @@ struct LoginView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Password strength: \(strength.label)")
             }
+        }
+    }
+
+    private var appleSignInSection: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                Rectangle()
+                    .fill(StandardWiseTheme.subtleBorder)
+                    .frame(height: 0.5)
+
+                Text("or")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Rectangle()
+                    .fill(StandardWiseTheme.subtleBorder)
+                    .frame(height: 0.5)
+            }
+
+            SignInWithAppleButton(.signIn) { request in
+                let nonce = LocalAuthService.randomNonceString()
+                currentAppleNonce = nonce
+                request.requestedScopes = [.fullName, .email]
+                request.nonce = LocalAuthService.sha256(nonce)
+            } onCompletion: { result in
+                switch result {
+                case .success(let authorization):
+                    guard let currentAppleNonce else {
+                        session.loginErrorMessage = "Apple sign-in could not start correctly. Please try again."
+                        return
+                    }
+
+                    Task {
+                        await session.loginWithApple(
+                            authorization: authorization,
+                            rawNonce: currentAppleNonce
+                        )
+                    }
+                case .failure(let error):
+                    session.handleAppleSignInFailure(error)
+                }
+            }
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: 48)
+            .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.controlCornerRadius))
+            .disabled(isBusy)
+            .accessibilityHint("Signs in or creates an account using Apple.")
         }
     }
 

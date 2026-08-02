@@ -1,3 +1,4 @@
+import AuthenticationServices
 import FirebaseAuth
 import Foundation
 
@@ -8,6 +9,7 @@ final class AppSession: ObservableObject {
     @Published var authInfoMessage: String?
     @Published var isLoggingIn = false
     @Published var isRegistering = false
+    @Published var isSigningInWithApple = false
     @Published var isSendingPasswordReset = false
 
     var isAuthenticated: Bool {
@@ -42,6 +44,30 @@ final class AppSession: ObservableObject {
         }
 
         isRegistering = false
+    }
+
+    func loginWithApple(authorization: ASAuthorization, rawNonce: String) async {
+        isSigningInWithApple = true
+        loginErrorMessage = nil
+        authInfoMessage = nil
+
+        do {
+            let user = try await LocalAuthService.authenticateWithApple(
+                authorization: authorization,
+                rawNonce: rawNonce
+            )
+            currentUser = user
+        } catch {
+            loginErrorMessage = loginMessage(for: error)
+        }
+
+        isSigningInWithApple = false
+    }
+
+    func handleAppleSignInFailure(_ error: Error) {
+        isSigningInWithApple = false
+        loginErrorMessage = loginMessage(for: error)
+        authInfoMessage = nil
     }
 
     func sendPasswordReset(email: String) async {
@@ -85,6 +111,10 @@ final class AppSession: ObservableObject {
                 return "An account already exists for this email."
             case .weakPassword:
                 return "Password should be at least 6 characters."
+            case .appleSignInUnavailable:
+                return "Sign in with Apple is available in Staging mode only."
+            case .invalidAppleCredential:
+                return "Apple did not return the login information we need. Please try again."
             }
         }
 

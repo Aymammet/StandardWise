@@ -1,5 +1,8 @@
+import AuthenticationServices
+import CryptoKit
 import FirebaseAuth
 import Foundation
+import Security
 
 enum LocalAuthService {
     private struct LocalCredential {
@@ -154,6 +157,75 @@ enum LocalAuthService {
         )
     }
 
+    static func authenticateWithApple(
+        authorization: ASAuthorization,
+        rawNonce: String
+    ) async throws -> StandardWiseUser {
+        guard authMode == .staging else {
+            throw AuthServiceError.appleSignInUnavailable
+        }
+
+        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+            throw AuthServiceError.invalidAppleCredential
+        }
+
+        guard let identityToken = appleIDCredential.identityToken,
+              let identityTokenString = String(data: identityToken, encoding: .utf8) else {
+            throw AuthServiceError.invalidAppleCredential
+        }
+
+        let credential = OAuthProvider.credential(
+            providerID: .apple,
+            idToken: identityTokenString,
+            rawNonce: rawNonce
+        )
+
+        let result = try await signIn(with: credential)
+        let fallbackEmail = appleIDCredential.email
+            ?? result.user.email
+            ?? "apple-\(result.user.uid)@standardwise.local"
+
+        return try await FirebaseUserService.userProfile(
+            from: result.user,
+            fallbackEmail: fallbackEmail,
+            defaultRole: .regular
+        )
+    }
+
+    static func randomNonceString(length: Int = 32) -> String {
+        precondition(length > 0)
+        let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        var result = ""
+        var remainingLength = length
+
+        while remainingLength > 0 {
+            var randoms = [UInt8](repeating: 0, count: 16)
+            let status = SecRandomCopyBytes(kSecRandomDefault, randoms.count, &randoms)
+            if status != errSecSuccess {
+                fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(status).")
+            }
+
+            randoms.forEach { random in
+                if remainingLength == 0 {
+                    return
+                }
+
+                if random < UInt8(charset.count) {
+                    result.append(charset[Int(random)])
+                    remainingLength -= 1
+                }
+            }
+        }
+
+        return result
+    }
+
+    static func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        return hashedData.map { String(format: "%02x", $0) }.joined()
+    }
+
     static func sendPasswordReset(email: String) async throws {
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
@@ -180,6 +252,24 @@ enum LocalAuthService {
     private static func signIn(email: String, password: String) async throws -> AuthDataResult {
         try await withCheckedThrowingContinuation { continuation in
             Auth.auth().signIn(withEmail: email, password: password) { result, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard let result else {
+                    continuation.resume(throwing: AuthServiceError.missingUser)
+                    return
+                }
+
+                continuation.resume(returning: result)
+            }
+        }
+    }
+
+    private static func signIn(with credential: AuthCredential) async throws -> AuthDataResult {
+        try await withCheckedThrowingContinuation { continuation in
+            Auth.auth().signIn(with: credential) { result, error in
                 if let error {
                     continuation.resume(throwing: error)
                     return
@@ -247,4 +337,6 @@ enum AuthServiceError: Error {
     case passwordResetUnavailable
     case accountAlreadyExists
     case weakPassword
+    case appleSignInUnavailable
+    case invalidAppleCredential
 }
