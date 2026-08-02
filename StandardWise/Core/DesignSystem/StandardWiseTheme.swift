@@ -71,9 +71,8 @@ struct StandardWiseFieldModifier: ViewModifier {
     }
 }
 
-/// Shared brand mark: a rounded "SW" badge with a purple gradient and sparkle
-/// accent, matching the app icon design. Used on the login screen and the
-/// practice screen's top bar so the brand looks the same everywhere.
+/// Shared question-and-check brand mark matching the app icon design.
+/// Used on the login screen so the brand looks consistent at launch.
 struct StandardWiseLogoMark: View {
     var size: CGFloat = 44
     var cornerRadius: CGFloat? = nil

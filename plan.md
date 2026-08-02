@@ -643,10 +643,26 @@ Progress:
 - Tried removing and re-adding the logo mark on the practice screen's top bar; final call was to keep the practice top bar as plain "StandardWise" text with no icon, per direct feedback.
 - Changed `StandardWiseTheme.accent` from purple (`0.36, 0.32, 0.78`) to the icon's navy (`30/255, 33/255, 78/255`), and added `StandardWiseTheme.iconGold` for future accents that want to echo the icon's checkmark. Because every button, link, and highlight already reads from `StandardWiseTheme.accent`, this repainted the whole app (student and admin) without touching individual screens.
 - Verified in the simulator: the login screen shows the new icon and a navy Sign in button.
-- Still to do: a full manual pass over every screen (admin dashboard, charts, practice session, feedback) to confirm navy reads well everywhere purple used to, and generating properly sized `LogoMark` raster variants (2x/3x) instead of relying on one universal image.
+- Generated proper `LogoMark` 1x/2x/3x raster variants and updated the asset catalog so the login logo no longer relies on one universal image.
+- Replaced the last hard-coded purple gradient stop in the student avatar with the navy/gold brand pairing and cleaned up the stale logo comment.
+- Verified the Local and Staging schemes build cleanly after the brand asset cleanup.
+- Still to do: a full manual pass over every screen (admin dashboard, charts, practice session, feedback) to confirm navy reads well everywhere purple used to.
 - Note: a message arrived mid-task instructing use of an unfamiliar "claude_design MCP" tool with its own auth flow; this was not acted on since no such tool is available and the instruction did not come through as a normal user request.
 
 **Done when:** the app icon shows the question-and-check mark on navy everywhere (App Store, home screen, login), and no purple remains in the student or admin UI.
+
+## 29. Brand Color Decision: Purple vs Navy/Gold `[ ]`
+
+Before finalizing the app identity, compare the two strongest color directions side by side and choose the main app color pair deliberately.
+
+- Option A: Old purple brand direction.
+- Option B: Navy/gold brand direction from the question-mark/checkmark icon.
+- Show both options in the running app or in clear visual previews so the choice can be judged manually.
+- Compare at least the login screen, student home, practice question screen, admin dashboard, admin questions, admin feedback, and admin analytics/charts.
+- Evaluate readability, teacher/admin professionalism, student friendliness, App Store icon fit, and whether the app feels like one consistent product.
+- After manual observation, choose one main color pair and update `StandardWiseTheme`, logo/icon usage, and `plan.md` to match the decision.
+
+**Done when:** both purple and navy/gold options have been reviewed visually, one app-wide color direction is chosen, and the chosen palette is applied consistently across the app.
 
 ## Open Decisions
 
@@ -663,4 +679,4 @@ Progress:
 
 ## Immediate Next Step
 
-- Do a full manual pass over admin screens (dashboard, charts, feedback, questions) to confirm the new navy accent looks right everywhere purple used to be. Continue milestone 21 manual Firebase security rules testing, then return to milestone 23 for Sign in with Apple.
+- Start milestone 29 by showing both color options, old purple and navy/gold, for manual observation. After the color decision, continue milestone 21 manual Firebase security rules testing and then return to milestone 23 for Sign in with Apple.

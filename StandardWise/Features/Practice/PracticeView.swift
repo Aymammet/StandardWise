@@ -143,7 +143,7 @@ struct PracticeView: View {
                 .frame(width: 48, height: 48)
                 .background(
                     LinearGradient(
-                        colors: [StandardWiseTheme.accent, Color(red: 0.52, green: 0.42, blue: 0.92)],
+                        colors: [StandardWiseTheme.accent, StandardWiseTheme.iconGold],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
