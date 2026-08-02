@@ -23,8 +23,6 @@ struct PracticeView: View {
     @State private var sessionIndex = 0
     @State private var sessionResults: [Bool] = []
 
-    private static let dailyGoal = 5
-
     private var subjects: [String] {
         standardStore.activeSubjects.map(\.name)
     }
@@ -122,6 +120,7 @@ struct PracticeView: View {
 
     private var homeContent: some View {
         VStack(alignment: .leading, spacing: 16) {
+            homeBrandHeader
             greetingHeader
             if isPracticeDataLoading {
                 practiceSkeleton
@@ -132,6 +131,21 @@ struct PracticeView: View {
             startButton
             todaySummarySection
         }
+    }
+
+    private var homeBrandHeader: some View {
+        VStack(spacing: 8) {
+            StandardWiseLogoMark(size: 72)
+
+            Text("StandardWise")
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundStyle(StandardWiseTheme.accent)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("StandardWise")
     }
 
     private var greetingHeader: some View {
@@ -153,11 +167,7 @@ struct PracticeView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Hi \(firstName)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                Text(homeHeadline)
-                    .font(.title2)
+                    .font(.title3)
                     .fontWeight(.bold)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -191,7 +201,7 @@ struct PracticeView: View {
                     ForEach(todayStandardSummaries) { summary in
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("\(summary.subjectName) \(summary.standardCode)")
+                                Text("\(summary.subjectName) - \(summary.standardCode)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
 
@@ -220,7 +230,7 @@ struct PracticeView: View {
                         .clipShape(RoundedRectangle(cornerRadius: StandardWiseTheme.cardCornerRadius))
                         .accessibilityElement(children: .combine)
                         .accessibilityLabel(
-                            "\(summary.subjectName) \(summary.standardCode): \(summary.correct) of \(summary.total) correct, \(summary.percent) percent."
+                            "\(summary.subjectName) - \(summary.standardCode): \(summary.correct) of \(summary.total) correct, \(summary.percent) percent."
                         )
                     }
                 }
@@ -255,7 +265,13 @@ struct PracticeView: View {
                 .font(.subheadline)
                 .fontWeight(.semibold)
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 10) {
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 10),
+                    GridItem(.flexible(), spacing: 10)
+                ],
+                spacing: 10
+            ) {
                 ForEach(subjects, id: \.self) { subject in
                     Button {
                         StandardWiseHaptics.tap()
@@ -571,18 +587,6 @@ struct PracticeView: View {
         user.name.split(separator: " ").first.map(String.init) ?? user.name
     }
 
-    private var homeHeadline: String {
-        if attemptsTodayCount >= Self.dailyGoal {
-            return "Daily goal complete!"
-        }
-
-        if let recent = userAttempts.first {
-            return recent.isCorrect ? "Keep the streak going." : "Ready for a comeback?"
-        }
-
-        return "Ready to practice?"
-    }
-
     private var userInitials: String {
         let initials = user.name
             .split(separator: " ")
@@ -639,11 +643,6 @@ struct PracticeView: View {
 
         let correct = attempts.filter(\.isCorrect).count
         return Int((Double(correct) / Double(attempts.count) * 100).rounded())
-    }
-
-    private var attemptsTodayCount: Int {
-        let calendar = Calendar.current
-        return userAttempts.filter { calendar.isDateInToday($0.createdAt) }.count
     }
 
     private var todayStandardSummaries: [StandardActivitySummary] {

@@ -664,6 +664,30 @@ Before finalizing the app identity, compare the two strongest color directions s
 
 **Done when:** both purple and navy/gold options have been reviewed visually, one app-wide color direction is chosen, and the chosen palette is applied consistently across the app.
 
+## 30. Student Home Layout Cleanup `[x]`
+
+Requested after reviewing the student home screen. Focus on making the main practice setup cleaner and more teacher/student readable.
+
+- Fix the Pick a Subject section layout. It currently shows three subjects in the first row and one subject in the second row.
+- Expected subject layout: two subjects in the first row (`Math`, `ELA`) and two subjects in the second row (`Science`, `Social Studies`).
+- Add the application logo at the top of the student home screen, with the app name `StandardWise` below it.
+- Remove the "daily goal complete" / daily-goal status text from the top greeting area.
+- Expected greeting: leave only `Hi, {username}` at the top.
+- Update the Today section visibility/format so each line shows subject and standard code clearly, for example:
+  - `Math - 6.RP.1`
+  - `Math - 7.RP.2`
+  - `ELA - 6.R.3`
+
+**Done when:** the student home shows the logo and `StandardWise` name at the top, the subject picker is a clean two-by-two grid, the greeting only says `Hi, {username}`, and the Today section lists each practiced standard in the requested `Subject - StandardCode` format.
+
+Completed:
+
+- Added the `LogoMark` image and `StandardWise` app name to the top of the student home screen.
+- Simplified the greeting card to only show `Hi {username}`.
+- Changed the subject picker to a fixed two-column grid so four subjects display as two rows.
+- Updated Today summary rows and accessibility labels to use `Subject - StandardCode`.
+- Verified the `StandardWise Local` scheme builds successfully.
+
 ## Open Decisions
 
 - Should admin users be seeded next, or should role management move fully into Firestore first?
@@ -679,4 +703,4 @@ Before finalizing the app identity, compare the two strongest color directions s
 
 ## Immediate Next Step
 
-- Start milestone 29 by showing both color options, old purple and navy/gold, for manual observation. After the color decision, continue milestone 21 manual Firebase security rules testing and then return to milestone 23 for Sign in with Apple.
+- Start milestone 29 by showing both color options, old purple and navy/gold, for manual observation. Then continue milestone 21 manual Firebase security rules testing and milestone 23 Sign in with Apple.
