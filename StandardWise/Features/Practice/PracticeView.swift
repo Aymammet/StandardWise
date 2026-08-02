@@ -23,6 +23,10 @@ struct PracticeView: View {
     @State private var sessionIndex = 0
     @State private var sessionResults: [Bool] = []
 
+    @State private var isHeaderVisible = true
+
+    private let headerHeight: CGFloat = 52
+
     private var subjects: [String] {
         standardStore.activeSubjects.map(\.name)
     }
@@ -61,24 +65,40 @@ struct PracticeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                Group {
-                    switch screen {
-                    case .home:
-                        homeContent
-                    case .session:
-                        sessionContent
-                    case .summary:
-                        summaryContent
+            VStack(spacing: 0) {
+                header
+                    .frame(height: isHeaderVisible ? headerHeight : 0)
+                    .clipped()
+                    .animation(.easeInOut(duration: 0.2), value: isHeaderVisible)
+
+                ScrollView {
+                    GeometryReader { proxy in
+                        Color.clear
+                            .preference(key: ScrollOffsetPreferenceKey.self, value: proxy.frame(in: .named("practiceScroll")).minY)
                     }
+                    .frame(height: 0)
+
+                    Group {
+                        switch screen {
+                        case .home:
+                            homeContent
+                        case .session:
+                            sessionContent
+                        case .summary:
+                            summaryContent
+                        }
+                    }
+                    .padding()
+                    .animation(StandardWiseTheme.spring, value: screen)
+                    .animation(StandardWiseTheme.spring, value: sessionIndex)
                 }
-                .padding()
-                .animation(StandardWiseTheme.spring, value: screen)
-                .animation(StandardWiseTheme.spring, value: sessionIndex)
+                .coordinateSpace(name: "practiceScroll")
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+                    isHeaderVisible = offset >= -4
+                }
             }
             .background(StandardWiseTheme.pageBackground)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { practiceToolbarContent }
+            .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 alignSelectionWithAvailableStandards()
             }
@@ -96,17 +116,20 @@ struct PracticeView: View {
 
     // MARK: - Brand
 
-    @ToolbarContentBuilder
-    private var practiceToolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
+    private var header: some View {
+        ZStack {
             brandTitle
-        }
 
-        if screen == .home, let onLogout {
-            ToolbarItem {
-                StandardWiseSignOutButton(onSignOut: onLogout)
+            HStack {
+                Spacer()
+                if screen == .home, let onLogout {
+                    StandardWiseSignOutButton(onSignOut: onLogout)
+                }
             }
         }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .frame(height: headerHeight)
     }
 
     private var brandTitle: some View {
@@ -711,6 +734,16 @@ struct PracticeView: View {
         } else {
             selectedStandardCode = ""
         }
+    }
+}
+
+// MARK: - Scroll tracking
+
+private struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

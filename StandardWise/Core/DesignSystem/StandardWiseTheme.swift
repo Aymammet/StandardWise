@@ -223,27 +223,37 @@ struct StandardWiseSignOutButton: View {
     @State private var isConfirming = false
 
     var body: some View {
-        Button {
-            isConfirming = true
-        } label: {
-            Image(systemName: "rectangle.portrait.and.arrow.right")
-                .fontWeight(.semibold)
-        }
-        .tint(StandardWiseTheme.accent)
-        .accessibilityLabel("Sign out")
-        .accessibilityHint("Shows a confirmation before signing out.")
-        .confirmationDialog(
-            "Sign out of StandardWise?",
-            isPresented: $isConfirming,
-            titleVisibility: .visible
-        ) {
-            Button("Sign out", role: .destructive) {
-                onSignOut()
+        Image(systemName: "person.fill")
+            .font(.footnote)
+            .fontWeight(.semibold)
+            .foregroundStyle(StandardWiseTheme.accent)
+            .frame(width: 32, height: 32)
+            .background(StandardWiseTheme.accentSoft)
+            .clipShape(Circle())
+            .contentShape(Circle())
+            .onTapGesture {
+                isConfirming = true
             }
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel("Account")
+        .accessibilityHint("Shows a confirmation before signing out.")
+        .popover(isPresented: $isConfirming) {
+            VStack(spacing: 14) {
+                Text("Are you sure you want to sign out?")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .multilineTextAlignment(.center)
 
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Your progress is saved. You can sign back in anytime.")
+                Button("Sign out", role: .destructive) {
+                    isConfirming = false
+                    onSignOut()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(StandardWiseTheme.danger)
+            }
+            .padding(20)
+            .frame(minWidth: 220)
+            .presentationCompactAdaptation(.popover)
         }
     }
 }
