@@ -147,7 +147,7 @@ enum LocalAuthService {
             throw error
         }
 
-        return try await FirebaseUserService.userProfile(
+        return try await FirebaseUserService.createUserProfile(
             from: result.user,
             fallbackEmail: normalizedEmail,
             defaultRole: .regular

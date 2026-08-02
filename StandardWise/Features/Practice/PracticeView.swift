@@ -780,6 +780,20 @@ private struct SessionQuestionCard: View {
         }
     }
 
+    private var answerResultAccessibilityValue: String {
+        let explanation = question.explanation.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if question.type == .input && answerResult?.isCorrect == false {
+            if explanation.isEmpty {
+                return "Correct answer: \(question.correctAnswer)."
+            }
+
+            return "Correct answer: \(question.correctAnswer). Explanation: \(explanation)"
+        }
+
+        return explanation.isEmpty ? "" : "Explanation: \(explanation)"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("\(question.standardCode) · \(standard?.name ?? "Practice")")
@@ -880,9 +894,11 @@ private struct SessionQuestionCard: View {
                             .fontWeight(.semibold)
                     }
 
-                    Text(question.explanation)
-                        .font(.subheadline)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if !question.explanation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(question.explanation)
+                            .font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -900,8 +916,8 @@ private struct SessionQuestionCard: View {
                 .accessibilityLabel(answerResult.isCorrect ? "Correct answer." : "Incorrect answer.")
                 .accessibilityValue(
                     question.type == .input && !answerResult.isCorrect
-                        ? "Correct answer: \(question.correctAnswer). Explanation: \(question.explanation)"
-                        : "Explanation: \(question.explanation)"
+                        ? answerResultAccessibilityValue
+                        : answerResultAccessibilityValue
                 )
 
                 Button("Next question") {

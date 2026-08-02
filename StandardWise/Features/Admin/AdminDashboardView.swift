@@ -846,7 +846,7 @@ private struct AdminQuestionFormView: View {
                 }
 
                 Section("Explanation") {
-                    TextField("Explain why the answer is correct", text: $explanation, axis: .vertical)
+                    TextField("Optional explanation", text: $explanation, axis: .vertical)
                         .lineLimit(3...6)
                 }
 
@@ -975,14 +975,15 @@ private struct AdminQuestionFormView: View {
             return false
         }
 
-        guard !clean(explanation).isEmpty else {
-            validationMessage = "Explanation is required."
-            return false
-        }
-
         if questionType == .multipleChoice {
             guard [choiceA, choiceB, choiceC, choiceD].allSatisfy({ !clean($0).isEmpty }) else {
                 validationMessage = "All four choices are required for multiple choice questions."
+                return false
+            }
+
+            let normalizedChoices = [choiceA, choiceB, choiceC, choiceD].map(normalizedChoice)
+            guard Set(normalizedChoices).count == normalizedChoices.count else {
+                validationMessage = "Each answer choice must be different."
                 return false
             }
         } else {
@@ -1018,6 +1019,13 @@ private struct AdminQuestionFormView: View {
     private func clean(_ value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines)
     }
+
+    private func normalizedChoice(_ value: String) -> String {
+        clean(value)
+            .lowercased()
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+    }
 }
 
 private struct AdminStandardsManagementView: View {
@@ -1028,6 +1036,36 @@ private struct AdminStandardsManagementView: View {
     @State private var editingStandard: LearningStandard?
     @State private var subjectToArchive: AcademicSubject?
     @State private var standardToArchive: LearningStandard?
+    @State private var selectedGradeID: UUID?
+    @State private var selectedSubjectID: UUID?
+
+    private var selectedGrade: GradeLevel? {
+        if let selectedGradeID,
+           let grade = standardStore.grades.first(where: { $0.id == selectedGradeID }) {
+            return grade
+        }
+
+        return standardStore.grades.sorted { $0.name < $1.name }.first
+    }
+
+    private var selectedSubject: AcademicSubject? {
+        if let selectedSubjectID,
+           let subject = standardStore.activeSubjects.first(where: { $0.id == selectedSubjectID }) {
+            return subject
+        }
+
+        return standardStore.activeSubjects.sorted { $0.name < $1.name }.first
+    }
+
+    private var filteredStandards: [LearningStandard] {
+        guard let selectedGrade, let selectedSubject else { return [] }
+
+        return standardStore.standards
+            .filter { standard in
+                standard.gradeID == selectedGrade.id && standard.subjectID == selectedSubject.id
+            }
+            .sorted { $0.code < $1.code }
+    }
 
     var body: some View {
         List {
@@ -1043,6 +1081,15 @@ private struct AdminStandardsManagementView: View {
             standardsSection
         }
         .navigationTitle("Standards")
+        .onAppear {
+            alignStandardFilters()
+        }
+        .onChange(of: standardStore.grades) { _, _ in
+            alignStandardFilters()
+        }
+        .onChange(of: standardStore.activeSubjects) { _, _ in
+            alignStandardFilters()
+        }
         .toolbar {
             Menu {
                 Button {
@@ -1164,14 +1211,46 @@ private struct AdminStandardsManagementView: View {
 
     private var standardsSection: some View {
         Section("Standards") {
-            if standardStore.standards.isEmpty {
+            if standardStore.grades.isEmpty || standardStore.activeSubjects.isEmpty {
+                StandardWiseEmptyState(
+                    systemImage: "slider.horizontal.3",
+                    title: "Picklists need setup",
+                    message: "Add at least one active subject and grade before browsing standards."
+                )
+            } else if standardStore.standards.isEmpty {
                 StandardWiseEmptyState(
                     systemImage: "list.bullet.clipboard",
                     title: "No standards yet",
                     message: "Add a standard code, name, and description before creating aligned questions."
                 )
             } else {
-                ForEach(standardStore.standards.sorted { $0.code < $1.code }) { standard in
+                Picker("Grade", selection: Binding(
+                    get: { selectedGrade?.id ?? standardStore.grades[0].id },
+                    set: { selectedGradeID = $0 }
+                )) {
+                    ForEach(standardStore.grades.sorted { $0.name < $1.name }) { grade in
+                        Text(grade.name).tag(grade.id)
+                    }
+                }
+
+                Picker("Subject", selection: Binding(
+                    get: { selectedSubject?.id ?? standardStore.activeSubjects[0].id },
+                    set: { selectedSubjectID = $0 }
+                )) {
+                    ForEach(standardStore.activeSubjects.sorted { $0.name < $1.name }) { subject in
+                        Text(subject.name).tag(subject.id)
+                    }
+                }
+
+                if filteredStandards.isEmpty {
+                    StandardWiseEmptyState(
+                        systemImage: "doc.text.magnifyingglass",
+                        title: "No standards for this selection",
+                        message: "Choose another grade or subject, or add a standard for this combination."
+                    )
+                }
+
+                ForEach(filteredStandards) { standard in
                     Button {
                         editingStandard = standard
                     } label: {
@@ -1191,6 +1270,16 @@ private struct AdminStandardsManagementView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func alignStandardFilters() {
+        if selectedGrade == nil {
+            selectedGradeID = standardStore.grades.sorted { $0.name < $1.name }.first?.id
+        }
+
+        if selectedSubject == nil {
+            selectedSubjectID = standardStore.activeSubjects.sorted { $0.name < $1.name }.first?.id
         }
     }
 }

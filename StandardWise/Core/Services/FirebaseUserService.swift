@@ -53,6 +53,22 @@ enum FirebaseUserService {
         return fallbackProfile
     }
 
+    static func createUserProfile(
+        from firebaseUser: FirebaseAuth.User,
+        fallbackEmail: String,
+        defaultRole: UserRole
+    ) async throws -> StandardWiseUser {
+        let email = (firebaseUser.email ?? fallbackEmail).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let profile = fallbackUserProfile(
+            from: firebaseUser,
+            email: email,
+            defaultRole: defaultRole
+        )
+
+        try await save(profile, firebaseUID: firebaseUser.uid)
+        return profile
+    }
+
     private static func fallbackUserProfile(
         from firebaseUser: FirebaseAuth.User,
         email: String,

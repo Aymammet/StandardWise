@@ -582,7 +582,7 @@ Progress:
 
 **Done when:** admins can identify the user who submitted feedback, and admins can create questions that include a photo or screenshot from their device.
 
-## 26. Manual Staging Test Bug Fixes `[ ]`
+## 26. Manual Staging Test Bug Fixes `[x]`
 
 Bugs found during manual Staging testing on July 29, 2026. Capture these before fixing so the testing trail stays clear.
 
@@ -595,6 +595,15 @@ Bugs found during manual Staging testing on July 29, 2026. Capture these before 
 - Expected: Multiple-choice questions should reject duplicate choices and show a clear validation message before saving.
 - Product correction: The admin Add/Edit Question form currently requires an explanation/description for every question.
 - Expected: Explanation/description should be optional. Admins should be able to save simple questions with that field left blank.
+
+Progress:
+
+- Updated Staging registration so creating a Firebase Auth user must also create the matching Firestore user profile instead of silently continuing with a local fallback if the profile write fails.
+- Redesigned the admin Standards section with Grade and Subject dropdown filters followed by the matching standards list, while keeping add/edit/archive actions available.
+- Added duplicate-choice validation for multiple-choice questions after trimming and normalizing case/spacing.
+- Made question explanations optional in the admin form and skipped the explanation text in student answer feedback when the field is blank.
+- Verified `StandardWise Local` and `StandardWise Staging` build successfully after the fixes.
+- Manual Staging testing passed: newly registered users now appear in the Firebase `users` collection and Admin Users, Standards filtering works by grade and subject, duplicate choices are blocked, and questions can be saved without an explanation.
 
 **Done when:** new Staging users create visible Firestore user profiles, the Standards admin page supports grade/subject filtering with a clear standards list and add/edit actions, duplicate multiple-choice choices are blocked before save, and explanation/description is optional for simple questions.
 
@@ -654,4 +663,4 @@ Progress:
 
 ## Immediate Next Step
 
-- Do a full manual pass over admin screens (dashboard, charts, feedback, questions) to confirm the new navy accent looks right everywhere purple used to be, then start milestone 26 by fixing the manual Staging bugs: new user Firestore profile creation, Standards admin filtering/list layout, and duplicate multiple-choice validation. Continue milestone 21 manual Firebase rules testing separately.
+- Do a full manual pass over admin screens (dashboard, charts, feedback, questions) to confirm the new navy accent looks right everywhere purple used to be. Continue milestone 21 manual Firebase security rules testing, then return to milestone 23 for Sign in with Apple.
