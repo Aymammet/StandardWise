@@ -134,18 +134,14 @@ struct PracticeView: View {
     }
 
     private var homeBrandHeader: some View {
-        VStack(spacing: 8) {
-            StandardWiseLogoMark(size: 72)
-
-            Text("StandardWise")
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundStyle(StandardWiseTheme.accent)
-        }
+        Text("Standardwise")
+            .font(.title3)
+            .fontWeight(.bold)
+            .foregroundStyle(StandardWiseTheme.accent)
         .frame(maxWidth: .infinity)
         .padding(.top, 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("StandardWise")
+        .accessibilityLabel("Standardwise")
     }
 
     private var greetingHeader: some View {
