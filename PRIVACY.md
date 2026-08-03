@@ -2,11 +2,12 @@
 
 > **DRAFT — not yet in effect.** This draft must be reviewed by a lawyer before
 > publication, especially for COPPA (children under 13) and FERPA (student
-> education records) compliance. Replace all bracketed placeholders before use.
+> education records) compliance. Replace all bracketed publication fields
+> before use.
 
-Effective date: [DATE]
-Operated by: [COMPANY / INDIVIDUAL NAME]
-Contact: [CONTACT EMAIL]
+Effective date: PUBLICATION_DATE
+Operated by: OPERATOR_NAME
+Contact: CONTACT_EMAIL
 
 ## What StandardWise does
 
@@ -18,21 +19,29 @@ content and review progress.
 
 When an account is created and used, we collect:
 
-- Account information: email address, display name, and role (student or admin).
+- Account information: first name, last name, email address, display name,
+  email-verification status, sign-in provider, and role (student or admin).
 - Practice activity: which questions were answered, the submitted answer,
   whether it was correct, the related subject, grade, and standard, and the
   date and time of each attempt.
 - Feedback: messages a student sends about a question, linked to the student's
   account and the question.
+- Admin-created learning content: subjects, grade levels, standards,
+  questions, answer choices, explanations, and optional images or screenshots
+  attached to questions.
 
-We do not collect precise location, contacts, photos, browsing history, or
-advertising identifiers. StandardWise contains no advertising and no
-third-party analytics or tracking SDKs.
+We do not collect precise location, contacts, browsing history, or advertising
+identifiers. StandardWise contains no advertising and no third-party analytics
+or tracking SDKs. Student users do not upload photos in the current app. Admin
+users may upload question images from their device photo library when creating
+learning content.
 
 ## How we use information
 
 - To sign users in and show the correct experience for their role.
-- To show students their own progress, streaks, and mastery.
+- To verify email addresses, reset passwords, and help users access their
+  accounts.
+- To show students their own progress and practice history.
 - To let administrators review practice activity, accuracy, and feedback so
   they can improve question content.
 
@@ -42,28 +51,31 @@ marketing.
 ## Where information is stored
 
 Account and practice data is stored in Google Firebase (Firebase
-Authentication and Cloud Firestore), hosted in [FIREBASE REGION, e.g.
-us-central1]. Some data is also cached on the user's device so the app works
-offline. Firebase processes data under Google's terms:
+Authentication and Cloud Firestore). The current Firestore database is in
+Firebase location `nam5` (United States multi-region). Some data is also
+cached on the user's device so the app works offline. Firebase processes data
+under Google's terms:
 https://firebase.google.com/support/privacy
 
 ## Children's privacy
 
 StandardWise is designed for students, including children under 13.
 
-- [DESCRIBE CONSENT MODEL — e.g. accounts are created only by schools or
-  parents; the app does not allow open self-signup for children; verifiable
-  parental consent is obtained via ...]
+- Production decision required before publication: decide whether student
+  accounts are created by schools/teachers/parents only, or whether open
+  self-signup remains available. If children under 13 can create accounts,
+  add the verifiable parental-consent process here before launch.
 - We collect only the minimum information needed for practice (email, name,
   and answer history) and use it only for educational purposes.
 - Parents, guardians, or schools may review or request deletion of a child's
-  data by contacting [CONTACT EMAIL].
+  data by contacting CONTACT_EMAIL.
 
 ## Data retention and deletion
 
 We keep account and practice data while the account is active. Users, parents,
 or schools can request deletion of an account and its data by contacting
-[CONTACT EMAIL]; we will delete it within [N] days.
+CONTACT_EMAIL. Publication decision required: add the deletion response window
+before launch, for example 30 days after a verified request.
 
 ## Security
 

@@ -13,7 +13,7 @@ when unset.
 | Scheme | Mode | Auth | Data |
 | --- | --- | --- | --- |
 | StandardWise Local | `local` | Sample accounts (`admin@standardwise.app` / `admin123`, `student@standardwise.app` / `student123`) | On-device only |
-| StandardWise Staging | `staging` | Firebase Authentication (email/password) | On-device first, synced with Firestore |
+| StandardWise Staging | `staging` | Firebase Authentication (email/password, email verification, Sign in with Apple) | On-device first, synced with Firestore |
 
 ## Source layout
 
@@ -37,9 +37,10 @@ StandardWise/
     Session/AppSession.swift   Login state + user-facing auth error mapping
     DesignSystem/StandardWiseTheme.swift  Brand colors, button/field styles,
                                haptics, sign-out button
-  Features/
-    Auth/LoginView.swift       Sign in / create account / reset
-    Practice/PracticeView.swift  Student home, 5-question sessions, summary
+    Features/
+    Auth/LoginView.swift       Sign in / create account / reset / Apple sign-in
+    Practice/PracticeView.swift  Student home, generated-question practice,
+                               Today summary
     Admin/AdminDashboardView.swift  Dashboard + all admin pages (questions,
                                standards, users, feedback, analytics)
 ```
@@ -74,10 +75,23 @@ Every store follows the same rules:
 ## Authentication
 
 - `LocalAuthService.authenticate` branches on mode: local checks sample
-  credentials; staging signs in with Firebase Auth, then loads the user's
-  Firestore profile via `FirebaseUserService.userProfile` (creating one on
-  first sign-in, with a deterministic UUID derived from the Firebase UID as a
-  fallback).
+  credentials; staging signs in with Firebase Auth, verifies the user's email
+  for regular email/password accounts, then loads the user's Firestore profile
+  via `FirebaseUserService.userProfile` (creating one on first sign-in, with a
+  deterministic UUID derived from the Firebase UID as a fallback).
+- Registration collects first name, last name, email, and password. Staging
+  creates the Firebase Auth account, writes the matching Firestore user
+  profile, sends the email activation link, signs the user back out, and
+  returns them to the sign-in screen with a "check your email" message.
+- Unverified regular users are blocked at sign-in until the activation link is
+  used. The sign-in screen can resend the activation email after the user
+  re-enters the email and password.
+- Password reset uses Firebase's reset-email flow in staging and shows
+  guidance to check Inbox, Spam, Junk, or Promotions.
+- Sign in with Apple uses Apple's native sign-in button, secure nonce
+  generation, Firebase's Apple OAuth credential flow, and regular-user profile
+  creation/fallback. Apple Developer and Firebase provider setup are still
+  required before production use.
 - Role routing happens in `RootView`: admins get `AdminDashboardView`,
   regular users get `PracticeView`.
 - `admin@standardwise.app` is a bootstrap admin (hard-coded in
@@ -133,9 +147,15 @@ Known limitations (also tracked in plan.md milestone 22):
 
 ## Design system
 
-`StandardWiseTheme` centralizes the brand: purple accent + soft tints,
-success/danger colors, 12pt corner radius, card shadow, a spring animation,
-`StandardWisePrimaryButtonStyle`, the `standardWiseField()` input style,
-`StandardWiseSignOutButton` (confirmation dialog), and `StandardWiseHaptics`.
-Student screens are playful (cards, chips, streaks); admin screens stay dense
-and functional with Swift Charts for analytics.
+`StandardWiseTheme` centralizes the brand: navy accent + gold supporting
+highlight, soft tints, success/danger colors, 12pt corner radius, card shadow,
+a spring animation, `StandardWisePrimaryButtonStyle`, the `standardWiseField()`
+input style, `StandardWiseSignOutButton` (confirmation dialog), and
+`StandardWiseHaptics`. The app icon and login logo use the question-mark and
+checkmark mark on navy.
+
+Student screens lead with the core workflow: choose subject, grade, and
+standard, then tap `Generate question`. The student home includes a Today
+summary grouped by practiced standard. Practice sessions continue generating
+questions until the student ends the session. Admin screens stay dense and
+functional with Swift Charts for analytics.

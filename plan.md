@@ -1,6 +1,6 @@
 # StandardWise Development Plan
 
-This plan reflects the active Xcode target as of July 2026. StandardWise is a SwiftUI app for standards-based student practice with separate student and admin experiences. Students practice standards in 5-question sessions with streaks, mastery tracking, and instant feedback; admins manage questions, standards, users, and feedback with charts-based analytics. The app runs in Local mode (sample logins, on-device data) and Staging mode (Firebase Auth plus Firestore sync).
+This plan reflects the active Xcode target as of July 2026. StandardWise is a SwiftUI app for standards-based student practice with separate student and admin experiences. Students generate standards-aligned questions, see instant feedback, and review a Today summary; admins manage questions, images, standards, users, and feedback with charts-based analytics. The app runs in Local mode (sample logins, on-device data) and Staging mode (Firebase Auth plus Firestore sync).
 
 ## Status Legend
 
@@ -551,6 +551,11 @@ Progress:
 - Added `PRIVACY.md`: a draft privacy policy covering collected data, Firebase storage, children's privacy, retention, and deletion. Contains bracketed placeholders and must be reviewed by a lawyer for COPPA/FERPA before publication.
 - Added `ARCHITECTURE.md`: app modes and schemes, source layout, the store pattern and sync rules, the Firestore schema for every collection, a security-rules summary with known limitations, and the design system.
 - Drafted a GitHub Actions CI workflow that builds both `StandardWise Local` and `StandardWise Staging` schemes on every push and pull request. Removed it from the commit because Xcode's stored GitHub credential lacks the `workflow` scope needed to push a `.github/workflows/` file, which blocked the push. The workflow content is saved locally; add it through the GitHub web editor, or re-authenticate the GitHub account in Xcode with a token that has the `workflow` scope and commit it from there.
+- Updated `ARCHITECTURE.md` to reflect the current auth flow, email activation, Apple sign-in support, navy/gold branding, question images, and open-ended Generate Question practice sessions.
+- Updated `PRIVACY.md` so the collected-data list matches the current app: first/last name, email verification, sign-in provider, practice attempts, feedback, admin-created question content, and optional admin-uploaded question images. Publication fields and legal review are still required.
+- Added `RELEASE_CHECKLIST.md` for Firebase, Apple Developer, compliance, TestFlight, App Store, and final manual-testing steps.
+- Added `CI_WORKFLOW.md` with the GitHub Actions workflow content to add later through GitHub once workflow-scope permissions are available.
+- Updated `README.md` so it describes the current Generate Question flow, Today summary, email activation, Apple sign-in support, question images, navy/gold brand, and release docs.
 - Still to do: fill the privacy policy placeholders and get legal review, add the CI workflow file via GitHub's web editor, verify the first CI run has an Xcode version that supports the iOS 26 target (adjust the runner image if not), and keep `ARCHITECTURE.md` updated as schemas change.
 - Deferred for later: `CHANGELOG.md`, `firestore.indexes.json` wired into `firebase.json`, `LICENSE`, and small `.gitignore` additions.
 
@@ -655,7 +660,7 @@ Progress:
 
 **Done when:** the app icon shows the question-and-check mark on navy everywhere (App Store, home screen, login), and no purple remains in the student or admin UI.
 
-## 29. Brand Color Decision: Purple vs Navy/Gold `[ ]`
+## 29. Brand Color Decision: Purple vs Navy/Gold `[x]`
 
 Before finalizing the app identity, compare the two strongest color directions side by side and choose the main app color pair deliberately.
 
@@ -667,6 +672,12 @@ Before finalizing the app identity, compare the two strongest color directions s
 - After manual observation, choose one main color pair and update `StandardWiseTheme`, logo/icon usage, and `plan.md` to match the decision.
 
 **Done when:** both purple and navy/gold options have been reviewed visually, one app-wide color direction is chosen, and the chosen palette is applied consistently across the app.
+
+Completed:
+
+- Product decision: skip the side-by-side purple comparison for now and keep the navy/gold direction that matches the question-mark/checkmark app icon.
+- Current app-wide direction is navy/gold, with `StandardWiseTheme.accent` using navy and `StandardWiseTheme.iconGold` available for supporting highlights.
+- Manual visual review can still happen later, but this decision is no longer blocking the release-prep work.
 
 ## 30. Student Home Layout Cleanup `[x]`
 
@@ -782,4 +793,4 @@ Progress:
 
 ## Immediate Next Step
 
-- Skip milestone 29 for now per product decision. Continue milestone 32 email deliverability review and milestone 24 infrastructure/compliance docs.
+- Start milestone 24: update project infrastructure, compliance, CI, and release-preparation docs.

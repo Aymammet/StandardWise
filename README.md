@@ -1,10 +1,10 @@
 # StandardWise
 
-StandardWise is a SwiftUI iOS app for standards-based student practice. Students pick a subject, grade, and learning standard, then practice in 5-question sessions with streaks, mastery tracking, and instant feedback. Admin users manage questions, subjects, standards, users, and feedback, and review activity through charts-based analytics from a separate admin area.
+StandardWise is a SwiftUI iOS app for standards-based student practice and teacher/admin question management. Students pick a subject, grade, and learning standard, then generate standards-aligned practice questions with instant feedback and a Today summary. Admin users manage questions, images, subjects, standards, users, and feedback, and review activity through charts-based analytics from a separate admin area.
 
 ## Current Status
 
-The app is in active development. It runs in two modes: `Local` (sample logins, on-device data only) and `Staging` (Firebase Authentication plus shared Firestore data for users, standards, questions, feedback, and answer attempts). The student and admin interfaces were redesigned for a more polished, game-like feel, and the practice content now covers Math, ELA, and Science across grades 6 through 9.
+The app is in active development. It runs in two modes: `Local` (sample logins, on-device data only) and `Staging` (Firebase Authentication plus shared Firestore data for users, standards, questions, feedback, and answer attempts). The student and admin interfaces were redesigned around the navy/gold StandardWise brand, and the practice content now covers Math, ELA, and Science across grades 6 through 9.
 
 See `ARCHITECTURE.md` for how the app, stores, and Firestore schema fit together, and `plan.md` for the full build history and open items.
 
@@ -12,18 +12,19 @@ See `ARCHITECTURE.md` for how the app, stores, and Firestore schema fit together
 
 ### Student experience
 
-- Sign in / create account flow with friendly error messages and a password strength check.
-- Practice home screen with a greeting, daily streak and goal tracker, tappable subject cards, grade chips, and a standard picker showing mastery percent.
-- 5-question practice sessions with a progress bar, animated transitions, haptics, and a session summary.
+- Sign in / create account flow with first and last name fields, email activation, resend activation email, forgot password, Sign in with Apple support, friendly error messages, and a password strength check.
+- Practice home screen with a greeting, tappable subject cards, grade chips, a standard picker showing mastery percent, and a Today summary grouped by practiced standard.
+- Generated-question practice sessions that continue until the student ends the session, with animated transitions and haptics.
 - Multiple-choice and typed-answer questions with instant correct/incorrect feedback and explanations.
+- Question images display inline when admins attach diagrams, graphs, or screenshots.
 - In-session feedback reporting for confusing or incorrect questions.
 
 ### Admin experience
 
 - Dashboard with a today activity strip (attempts, active students, accuracy), tappable metric cards, and a feedback alert badge when new reports are waiting.
-- Question management with add, edit, archive, search, and filters.
-- Standards management with add/edit/archive support for subjects and standards.
-- Feedback review with status tracking (new, reviewed, resolved).
+- Question management with add, edit, archive, search, filters, duplicate-choice validation, optional explanations, and inline photo insertion from the photo library.
+- Standards management with grade/subject filters and add/edit/archive support for subjects and standards.
+- Feedback review with status tracking (new, reviewed, resolved) and feedback-owner visibility.
 - User list with accuracy summaries and attempt history.
 - Analytics with bar charts for attempts by subject, grade, and standard, plus most-missed questions and most-practiced standards.
 
@@ -33,6 +34,7 @@ See `ARCHITECTURE.md` for how the app, stores, and Firestore schema fit together
 - Local mode tracking for users, answer attempts, feedback, and analytics.
 - Staging mode sync for users, standards, questions, feedback, and answer attempts.
 - Shared Xcode schemes for Local and Staging runs.
+- Draft privacy, architecture, release, and CI workflow docs for TestFlight preparation.
 
 ## Login Accounts
 
@@ -147,7 +149,7 @@ For staging users, each Firebase Auth user should also have a matching Firestore
 3. Select an iPhone simulator.
 4. Build and run.
 
-Use `StandardWise Local` when testing app behavior without Firebase. Use `StandardWise Staging` when testing Firebase login.
+Use `StandardWise Local` when testing app behavior without Firebase. Use `StandardWise Staging` when testing Firebase login, email activation, Firestore sync, and production-like auth behavior.
 
 ## Project Structure
 
@@ -171,11 +173,13 @@ StandardWise/
 - `plan.md` — source of truth for planned features, build order, and progress notes.
 - `ARCHITECTURE.md` — app modes, the store/sync pattern, Firestore schema, and security rules summary.
 - `PRIVACY.md` — draft privacy policy; needs legal review before publication.
+- `RELEASE_CHECKLIST.md` — Firebase, Apple Developer, TestFlight, and App Store preparation checklist.
+- `CI_WORKFLOW.md` — GitHub Actions workflow content to add through GitHub once workflow-scope permissions are available.
 
 ## Development Plan
 
 Next major work:
 
-- Deploy and test Firestore security rules.
-- Finish manual testing of the redesigned student and admin flows.
-- Add a CI build workflow, an app icon, and a dark-mode pass.
+- Finish Milestone 24 infrastructure and compliance documentation.
+- Finish Milestone 19 testing and quality checks.
+- Prepare TestFlight setup after Firebase, Apple Developer, and privacy-policy decisions are ready.
