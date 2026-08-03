@@ -29,13 +29,15 @@ enum FirebaseUserService {
     static func userProfile(
         from firebaseUser: FirebaseAuth.User,
         fallbackEmail: String,
-        defaultRole: UserRole
+        defaultRole: UserRole,
+        displayName: String? = nil
     ) async throws -> StandardWiseUser {
         let email = (firebaseUser.email ?? fallbackEmail).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let fallbackProfile = fallbackUserProfile(
             from: firebaseUser,
             email: email,
-            defaultRole: defaultRole
+            defaultRole: defaultRole,
+            displayName: displayName
         )
 
         do {
@@ -56,13 +58,15 @@ enum FirebaseUserService {
     static func createUserProfile(
         from firebaseUser: FirebaseAuth.User,
         fallbackEmail: String,
-        defaultRole: UserRole
+        defaultRole: UserRole,
+        displayName: String? = nil
     ) async throws -> StandardWiseUser {
         let email = (firebaseUser.email ?? fallbackEmail).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let profile = fallbackUserProfile(
             from: firebaseUser,
             email: email,
-            defaultRole: defaultRole
+            defaultRole: defaultRole,
+            displayName: displayName
         )
 
         try await save(profile, firebaseUID: firebaseUser.uid)
@@ -72,14 +76,15 @@ enum FirebaseUserService {
     private static func fallbackUserProfile(
         from firebaseUser: FirebaseAuth.User,
         email: String,
-        defaultRole: UserRole
+        defaultRole: UserRole,
+        displayName: String? = nil
     ) -> StandardWiseUser {
         StandardWiseUser(
             id: stableUUID(from: firebaseUser.uid),
             name: defaultName(
                 for: email,
                 role: defaultRole,
-                displayName: firebaseUser.displayName
+                displayName: displayName ?? firebaseUser.displayName
             ),
             email: email,
             role: defaultRole,

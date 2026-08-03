@@ -9,12 +9,16 @@ struct LoginView: View {
     }
 
     private enum AuthField {
+        case firstName
+        case lastName
         case email
         case password
     }
 
     @ObservedObject var session: AppSession
     @State private var authScreen: AuthScreen = .signIn
+    @State private var firstName = ""
+    @State private var lastName = ""
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
@@ -22,7 +26,15 @@ struct LoginView: View {
     @FocusState private var focusedField: AuthField?
 
     private var canSubmit: Bool {
-        !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !password.isEmpty
+        let hasCredentials = !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !password.isEmpty
+
+        if authScreen == .createAccount {
+            return hasCredentials
+                && !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        return hasCredentials
     }
 
     private var isBusy: Bool {
@@ -30,6 +42,7 @@ struct LoginView: View {
             || session.isRegistering
             || session.isSigningInWithApple
             || session.isSendingPasswordReset
+            || session.isSendingEmailVerification
     }
 
     var body: some View {
@@ -94,6 +107,7 @@ struct LoginView: View {
             emailField
             passwordField
             authMessages
+            verificationResendButton
 
             Button {
                 submitSignIn()
@@ -134,6 +148,7 @@ struct LoginView: View {
                     .foregroundStyle(.secondary)
             }
 
+            nameFields
             emailField
             passwordField
             passwordStrengthBar
@@ -166,7 +181,7 @@ struct LoginView: View {
                     .font(.title3)
                     .fontWeight(.bold)
 
-                Text("Enter your email and we'll send a reset link.")
+                Text("Enter your email and we'll send a reset link. If it does not arrive quickly, check Spam, Junk, or Promotions.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -193,6 +208,52 @@ struct LoginView: View {
     }
 
     // MARK: Fields
+
+    private var nameFields: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: "person")
+                    .foregroundStyle(.secondary)
+
+                TextField("First name", text: $firstName)
+                    .textContentType(.givenName)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .focused($focusedField, equals: .firstName)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        focusedField = .lastName
+                    }
+                    .accessibilityLabel("First name")
+            }
+            .standardWiseField()
+            .overlay {
+                RoundedRectangle(cornerRadius: StandardWiseTheme.controlCornerRadius)
+                    .stroke(focusedField == .firstName ? StandardWiseTheme.accent : .clear, lineWidth: 1.5)
+            }
+
+            HStack(spacing: 10) {
+                Image(systemName: "person.text.rectangle")
+                    .foregroundStyle(.secondary)
+
+                TextField("Last name", text: $lastName)
+                    .textContentType(.familyName)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .focused($focusedField, equals: .lastName)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        focusedField = .email
+                    }
+                    .accessibilityLabel("Last name")
+            }
+            .standardWiseField()
+            .overlay {
+                RoundedRectangle(cornerRadius: StandardWiseTheme.controlCornerRadius)
+                    .stroke(focusedField == .lastName ? StandardWiseTheme.accent : .clear, lineWidth: 1.5)
+            }
+        }
+    }
 
     private var emailField: some View {
         HStack(spacing: 10) {
@@ -285,6 +346,29 @@ struct LoginView: View {
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Password strength: \(strength.label)")
+            }
+        }
+    }
+
+    private var verificationResendButton: some View {
+        Group {
+            if session.loginErrorMessage == "Please check your email and confirm your email by using activation link sent to you." {
+                Button {
+                    Task {
+                        await session.resendEmailVerification(email: email, password: password)
+                    }
+                } label: {
+                    if session.isSendingEmailVerification {
+                        ProgressView()
+                    } else {
+                        Label("Resend activation email", systemImage: "paperplane")
+                    }
+                }
+                .font(.footnote.weight(.semibold))
+                .buttonStyle(.bordered)
+                .tint(StandardWiseTheme.accent)
+                .disabled(!canSubmit || isBusy)
+                .accessibilityHint("Sends another email confirmation link to this account.")
             }
         }
     }
@@ -442,7 +526,7 @@ struct LoginView: View {
         authScreen = screen
         session.loginErrorMessage = nil
         session.authInfoMessage = nil
-        focusedField = .email
+        focusedField = screen == .createAccount ? .firstName : .email
     }
 
     private func submitSignIn() {
@@ -452,7 +536,20 @@ struct LoginView: View {
 
     private func submitCreateAccount() {
         guard canSubmit, !isBusy else { return }
-        Task { await session.register(email: email, password: password) }
+        Task {
+            await session.register(
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password
+            )
+
+            if session.loginErrorMessage == nil, session.authInfoMessage != nil {
+                authScreen = .signIn
+                password = ""
+                focusedField = .email
+            }
+        }
     }
 
     private func friendlyErrorMessage(_ message: String) -> String {

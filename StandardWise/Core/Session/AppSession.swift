@@ -11,6 +11,7 @@ final class AppSession: ObservableObject {
     @Published var isRegistering = false
     @Published var isSigningInWithApple = false
     @Published var isSendingPasswordReset = false
+    @Published var isSendingEmailVerification = false
 
     var isAuthenticated: Bool {
         currentUser != nil
@@ -31,14 +32,19 @@ final class AppSession: ObservableObject {
         isLoggingIn = false
     }
 
-    func register(email: String, password: String) async {
+    func register(firstName: String, lastName: String, email: String, password: String) async {
         isRegistering = true
         loginErrorMessage = nil
         authInfoMessage = nil
 
         do {
-            let user = try await LocalAuthService.register(email: email, password: password)
-            currentUser = user
+            _ = try await LocalAuthService.register(
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password
+            )
+            authInfoMessage = "Please check your email and confirm your email by using activation link sent to you. Check Spam, Junk, or Promotions if you do not see it."
         } catch {
             loginErrorMessage = loginMessage(for: error)
         }
@@ -77,12 +83,27 @@ final class AppSession: ObservableObject {
 
         do {
             try await LocalAuthService.sendPasswordReset(email: email)
-            authInfoMessage = "Password reset email sent. Please check your inbox."
+            authInfoMessage = "Password reset email sent. Please check your Inbox, Spam, Junk, or Promotions."
         } catch {
             loginErrorMessage = loginMessage(for: error)
         }
 
         isSendingPasswordReset = false
+    }
+
+    func resendEmailVerification(email: String, password: String) async {
+        isSendingEmailVerification = true
+        loginErrorMessage = nil
+        authInfoMessage = nil
+
+        do {
+            try await LocalAuthService.resendEmailVerification(email: email, password: password)
+            authInfoMessage = "Verification email sent again. Please check your Inbox, Spam, Junk, or Promotions."
+        } catch {
+            loginErrorMessage = loginMessage(for: error)
+        }
+
+        isSendingEmailVerification = false
     }
 
     func logout() {
@@ -115,6 +136,10 @@ final class AppSession: ObservableObject {
                 return "Sign in with Apple is available in Staging mode only."
             case .invalidAppleCredential:
                 return "Apple did not return the login information we need. Please try again."
+            case .emailNotVerified:
+                return "Please check your email and confirm your email by using activation link sent to you."
+            case .emailAlreadyVerified:
+                return "Your email is activated. Start using StandardWise app."
             }
         }
 

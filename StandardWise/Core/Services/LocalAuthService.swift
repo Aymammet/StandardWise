@@ -120,16 +120,33 @@ enum LocalAuthService {
             throw error
         }
 
+        try await result.user.reload()
+        if !adminEmails.contains(normalizedEmail),
+           !(Auth.auth().currentUser?.isEmailVerified ?? result.user.isEmailVerified) {
+            try? Auth.auth().signOut()
+            throw AuthServiceError.emailNotVerified
+        }
+
         let defaultRole: UserRole = adminEmails.contains(normalizedEmail) ? .admin : .regular
         return try await FirebaseUserService.userProfile(
-            from: result.user,
+            from: Auth.auth().currentUser ?? result.user,
             fallbackEmail: normalizedEmail,
             defaultRole: defaultRole
         )
     }
 
-    static func register(email: String, password: String) async throws -> StandardWiseUser {
+    static func register(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String
+    ) async throws -> StandardWiseUser {
+        let normalizedFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let displayName = [normalizedFirstName, normalizedLastName]
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
 
         guard authMode == .staging else {
             throw AuthServiceError.registrationUnavailable
@@ -150,11 +167,47 @@ enum LocalAuthService {
             throw error
         }
 
-        return try await FirebaseUserService.createUserProfile(
+        let profile = try await FirebaseUserService.createUserProfile(
             from: result.user,
             fallbackEmail: normalizedEmail,
-            defaultRole: .regular
+            defaultRole: .regular,
+            displayName: displayName
         )
+
+        try await sendEmailVerification(to: result.user)
+        try? Auth.auth().signOut()
+        return profile
+    }
+
+    static func sendEmailVerificationToCurrentUser() async throws {
+        guard authMode == .staging else {
+            throw AuthServiceError.registrationUnavailable
+        }
+
+        guard let user = Auth.auth().currentUser else {
+            throw AuthServiceError.missingUser
+        }
+
+        try await sendEmailVerification(to: user)
+    }
+
+    static func resendEmailVerification(email: String, password: String) async throws {
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        guard authMode == .staging else {
+            throw AuthServiceError.registrationUnavailable
+        }
+
+        let result = try await signIn(email: normalizedEmail, password: password)
+        try await result.user.reload()
+
+        guard !(Auth.auth().currentUser?.isEmailVerified ?? result.user.isEmailVerified) else {
+            try? Auth.auth().signOut()
+            throw AuthServiceError.emailAlreadyVerified
+        }
+
+        try await sendEmailVerification(to: Auth.auth().currentUser ?? result.user)
+        try? Auth.auth().signOut()
     }
 
     static func authenticateWithApple(
@@ -184,11 +237,14 @@ enum LocalAuthService {
         let fallbackEmail = appleIDCredential.email
             ?? result.user.email
             ?? "apple-\(result.user.uid)@standardwise.local"
+        let appleDisplayName = PersonNameComponentsFormatter()
+            .string(from: appleIDCredential.fullName ?? PersonNameComponents())
 
         return try await FirebaseUserService.userProfile(
             from: result.user,
             fallbackEmail: fallbackEmail,
-            defaultRole: .regular
+            defaultRole: .regular,
+            displayName: appleDisplayName.isEmpty ? nil : appleDisplayName
         )
     }
 
@@ -235,6 +291,19 @@ enum LocalAuthService {
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Auth.auth().sendPasswordReset(withEmail: normalizedEmail) { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                continuation.resume()
+            }
+        }
+    }
+
+    private static func sendEmailVerification(to user: FirebaseAuth.User) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            user.sendEmailVerification { error in
                 if let error {
                     continuation.resume(throwing: error)
                     return
@@ -339,4 +408,6 @@ enum AuthServiceError: Error {
     case weakPassword
     case appleSignInUnavailable
     case invalidAppleCredential
+    case emailNotVerified
+    case emailAlreadyVerified
 }

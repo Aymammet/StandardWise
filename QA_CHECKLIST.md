@@ -23,6 +23,24 @@ This checklist tracks the main workflows that should be checked before each larg
 - [ ] Staging regular-user login opens the practice screen.
 - [ ] Staging missing username behavior is verified after Firestore `users` records are seeded.
 - [ ] Staging wrong password behavior is verified after Firestore `users` records are seeded.
+- [ ] Staging create-account flow sends an email activation link.
+- [ ] Staging unverified regular-user login is blocked with the activation reminder.
+- [ ] Staging Resend activation email sends another activation message.
+- [ ] Staging verified regular-user login succeeds after clicking the activation link.
+- [ ] Staging forgot-password flow sends a reset email.
+
+## Auth Email Deliverability
+
+- [ ] Password reset screen tells users to check Inbox, Spam, Junk, or Promotions.
+- [ ] Activation email messages tell users to check Inbox, Spam, Junk, or Promotions.
+- [ ] Gmail test: record whether activation email lands in Inbox, Spam, or Promotions.
+- [ ] Gmail test: record whether password reset email lands in Inbox, Spam, or Promotions.
+- [ ] iCloud test: record whether activation and reset emails land in Inbox or Junk.
+- [ ] Outlook/Hotmail test: record whether activation and reset emails land in Inbox or Junk.
+- [ ] School email test, if available: record whether activation and reset emails arrive or are filtered.
+- [ ] Firebase Authentication email templates have StandardWise sender name, subject, and wording.
+- [ ] Firebase Authentication custom sender domain is reviewed for production.
+- [ ] If a custom sender domain is used, required Firebase DNS records are added and verified.
 
 ## Firebase Rules
 

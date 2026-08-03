@@ -489,7 +489,7 @@ Bugs found during a code review of the Firebase staging work, with their fixes.
 
 **Done when:** the fixes build cleanly and the affected flows (analytics grouping, student login without permission errors, admin editing during sync) are re-tested in the simulator.
 
-## 23. Student UI/UX Redesign `[~]`
+## 23. Student UI/UX Redesign `[x]`
 
 Make the student experience feel modern, friendly, and game-like to attract and retain students. Admin screens stay dense and functional.
 
@@ -542,7 +542,7 @@ Progress:
 - Added Sign in with Apple to the sign-in and create-account screens using Apple's native button, secure nonce generation, Firebase's Apple OAuth credential flow, regular-user profile creation/fallback, and the required Apple sign-in entitlement.
 - Verified the Local and Staging schemes build cleanly after adding Sign in with Apple.
 - Manual setup still needed: enable Sign in with Apple for the app identifier in Apple Developer/Xcode signing, enable Apple as a Firebase Authentication provider, and test on a signed simulator or physical device with an Apple ID.
-- Still to do: a fuller manual test pass of the redesigned flows.
+- Manual Staging testing passed: login/register, email activation, forgot password, regular-user practice flow, Today summary, question images, admin dashboard/users/standards/questions/feedback/analytics, and Light/Dark Mode were tested successfully.
 
 **Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
 
@@ -692,7 +692,7 @@ Completed:
 - Updated Today summary rows and accessibility labels to use `Subject - StandardCode`.
 - Verified the `StandardWise Local` scheme builds successfully.
 
-## 31. Email Confirmation and Account Activation `[ ]`
+## 31. Email Confirmation and Account Activation `[x]`
 
 Require newly registered users to confirm their email before they can use StandardWise.
 
@@ -706,7 +706,66 @@ Require newly registered users to confirm their email before they can use Standa
 - Add friendly resend-confirmation-email behavior if the user did not receive the email.
 - Test the full flow: register, receive email, blocked login before activation, activate by link, successful login after activation.
 
+Progress:
+
+- Registration now sends a Firebase email verification message after creating the Auth user and Firestore user profile.
+- Newly registered email/password users are signed out immediately instead of being allowed into the app before verification.
+- Login now reloads the Firebase user and blocks regular email/password users whose email is not verified.
+- Blocked users see: `Please check your email and confirm your email by using activation link sent to you.`
+- Added a `Resend activation email` action for blocked users from the sign-in screen.
+- Admin email/password login is exempt from the verification block for now to avoid admin lockout during setup.
+- Password reset and activation messages now mention checking Inbox, Spam, Junk, or Promotions.
+- Verified both `StandardWise Local` and `StandardWise Staging` build successfully after the email activation changes.
+- Manual Staging testing passed: registration sends the activation email, redirects back to Sign in with the activation notice, login is blocked before activation, resend activation email works, the activation link verifies the account, and login succeeds after activation.
+
 **Done when:** new self-registered users cannot use the app until their email is confirmed, blocked users see a clear activation message, and confirmed users can start using StandardWise after clicking the email activation link.
+
+## 32. Auth Email Deliverability and Spam Guidance `[x]`
+
+Improve the experience around password reset and future email-confirmation messages, since Firebase auth emails may land in the user's spam folder.
+
+- Add helpful text after sending a password reset email: tell the user to check Inbox, Spam, Junk, or Promotions if the email does not appear quickly.
+- Reuse the same guidance for email-confirmation/activation emails in milestone 31.
+- Consider adding a visible `Resend email` action where appropriate so users do not get stuck.
+- Later production improvement: configure Firebase Authentication email templates with StandardWise branding.
+- Later production improvement: use a verified/custom sender domain if available, to reduce the chance that auth emails go to spam.
+- Manually test with common email providers and record where messages arrive: Gmail, iCloud, Outlook/Hotmail, and school email if possible.
+
+Progress:
+
+- Password reset success message now tells users to check Inbox, Spam, Junk, or Promotions.
+- Registration/email activation success messages now tell users to check Inbox, Spam, Junk, or Promotions.
+- Added a resend action for activation emails from the blocked-login state.
+- Added pre-send forgot-password guidance so users know to check Spam, Junk, or Promotions if the reset email does not appear quickly.
+- Added an Auth Email Deliverability section to `QA_CHECKLIST.md` for Gmail, iCloud, Outlook/Hotmail, school email, Firebase email templates, and custom sender domain review.
+- Reviewed Firebase's current email customization options: Firebase Authentication templates support sender/template customization and a custom sender domain can be configured and verified with DNS records.
+- Manual testing passed. Auth email guidance, resend flow, and deliverability notes are working as expected.
+
+**Done when:** users are clearly told where to look for auth emails, can request another email when needed, and production email settings are reviewed to reduce spam-folder delivery.
+
+## 33. Registration Name Fields and Personalized Greeting `[x]`
+
+Collect the user's first and last name during registration and use the first name in the regular-user home greeting.
+
+- Add two input fields to the create-account screen: `First name` and `Last name`.
+- Require first name and last name when registering a new regular user, unless a later product decision makes last name optional.
+- Save the registered user's full name to the Firebase `users` profile.
+- Make sure Local mode/sample users still work without breaking existing test logins.
+- On the main regular-user screen, show `Hi {First name}` at the top instead of falling back to `Hi {email}`.
+- Confirm Apple sign-in users still get a reasonable display name when Apple provides one, and a friendly fallback if Apple hides name/email.
+- Test registration, login, Admin Users display, feedback owner display, and the regular-user home greeting after the profile change.
+
+Progress:
+
+- Added `First name` and `Last name` fields to the create-account screen.
+- Create account is disabled until first name, last name, email, and password are filled.
+- Registration now saves the entered full name to the Firebase `users` profile.
+- Apple sign-in now also passes Apple's display name into the Firebase user profile when Apple provides it.
+- The regular-user home greeting already uses the first word of the saved user name, so newly registered users now see `Hi {First name}` after their profile is saved.
+- Verified both `StandardWise Local` and `StandardWise Staging` build successfully after the registration profile changes.
+- Manual Staging testing passed: new registration requires first and last name, the Firestore user profile stores the full name, Admin Users and feedback owner display use the saved name, and the regular-user home screen greets the user by first name.
+
+**Done when:** new registered users provide first and last name, the name is saved to their user profile, and the regular-user home screen greets them by first name.
 
 ## Open Decisions
 
@@ -723,4 +782,4 @@ Require newly registered users to confirm their email before they can use Standa
 
 ## Immediate Next Step
 
-- Skip milestone 29 for now per product decision. Continue milestone 23 with manual Sign in with Apple setup/testing and a fuller manual pass of the redesigned flows. Milestone 31 is planned next, but deferred until milestone 23 is finished.
+- Skip milestone 29 for now per product decision. Continue milestone 32 email deliverability review and milestone 24 infrastructure/compliance docs.
