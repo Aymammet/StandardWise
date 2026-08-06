@@ -22,7 +22,7 @@ on:
 jobs:
   build:
     name: Build StandardWise
-    runs-on: macos-latest
+    runs-on: macos-26
 
     steps:
       - name: Checkout
@@ -53,7 +53,15 @@ jobs:
 After adding it:
 
 - Confirm the first run starts on GitHub.
+- `macos-26` is preferred while this project targets the newest iOS simulator
+  tooling. If the project deployment target changes later, another macOS runner
+  may be enough.
 - If the hosted Xcode version does not support the current iOS target, pin a
   compatible macOS runner image or adjust the project deployment settings.
 - Keep signing disabled for CI simulator builds unless a signed archive job is
   added later.
+
+Reference:
+
+- GitHub-hosted runners:
+  https://docs.github.com/en/actions/reference/runners/github-hosted-runners

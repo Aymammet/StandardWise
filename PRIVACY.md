@@ -2,12 +2,19 @@
 
 > **DRAFT — not yet in effect.** This draft must be reviewed by a lawyer before
 > publication, especially for COPPA (children under 13) and FERPA (student
-> education records) compliance. Replace all bracketed publication fields
-> before use.
+> education records) compliance. Replace all publication fields before use.
 
 Effective date: PUBLICATION_DATE
 Operated by: OPERATOR_NAME
 Contact: CONTACT_EMAIL
+
+Publication fields to fill before use:
+
+- `PUBLICATION_DATE`
+- `OPERATOR_NAME`
+- `CONTACT_EMAIL`
+- Deletion response window
+- Student account consent model
 
 ## What StandardWise does
 

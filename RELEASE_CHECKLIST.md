@@ -39,7 +39,12 @@ App Store release.
 - Prepare the App Store privacy nutrition-label answers from `PRIVACY.md`.
 - Prepare support contact, marketing URL, and privacy-policy URL.
 - Prepare screenshots for required device sizes.
+- Prepare TestFlight beta app description, features-to-test notes, beta review
+  information, and feedback email address.
 - Prepare TestFlight tester notes with login/setup instructions.
+- Decide whether the first TestFlight round is internal only or external.
+  External testing can support more testers, but Apple's beta review is required
+  for the first external build.
 
 ## Final Testing
 
@@ -53,6 +58,31 @@ App Store release.
 - Test Light Mode and Dark Mode.
 - Complete `QA_CHECKLIST.md`.
 
+## CI Setup
+
+- Add `.github/workflows/ios-build.yml` using the content in
+  `CI_WORKFLOW.md`.
+- Prefer the `macos-26` GitHub runner while the project targets the newest iOS
+  simulator tooling.
+- Keep `CODE_SIGNING_ALLOWED=NO` for simulator CI builds.
+- Confirm the first workflow run builds both shared schemes.
+- If CI fails because of Xcode or simulator availability, update the runner
+  image or destination before treating the app build as broken.
+
+## Manual Owner Steps
+
+These steps cannot be completed by code alone:
+
+- Choose the real operator name for `PRIVACY.md`.
+- Choose the public support/contact email.
+- Choose the privacy-policy effective date.
+- Choose whether production allows open student self-signup.
+- Get legal/privacy review before public launch.
+- Add the CI workflow file in GitHub or reauthenticate GitHub with workflow
+  permission.
+- Upload the first archive to App Store Connect from Xcode.
+- Invite TestFlight testers from App Store Connect.
+
 ## Release Decision
 
 - Confirm the chosen brand direction is navy/gold.
@@ -60,3 +90,16 @@ App Store release.
 - Confirm Milestone 24 documentation is complete enough for TestFlight.
 - Archive in Xcode and upload to App Store Connect.
 - Start with TestFlight before full App Store release.
+- Remember that TestFlight builds expire after 90 days, so refresh beta builds
+  if testing continues for a long time.
+
+## Reference Links
+
+- Apple TestFlight overview:
+  https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview
+- Apple app privacy details:
+  https://developer.apple.com/app-store/app-privacy-details/
+- Apple distribution overview:
+  https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases
+- GitHub-hosted runners:
+  https://docs.github.com/en/actions/reference/runners/github-hosted-runners

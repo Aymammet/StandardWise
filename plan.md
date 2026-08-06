@@ -556,7 +556,10 @@ Progress:
 - Added `RELEASE_CHECKLIST.md` for Firebase, Apple Developer, compliance, TestFlight, App Store, and final manual-testing steps.
 - Added `CI_WORKFLOW.md` with the GitHub Actions workflow content to add later through GitHub once workflow-scope permissions are available.
 - Updated `README.md` so it describes the current Generate Question flow, Today summary, email activation, Apple sign-in support, question images, navy/gold brand, and release docs.
-- Still to do: fill the privacy policy placeholders and get legal review, add the CI workflow file via GitHub's web editor, verify the first CI run has an Xcode version that supports the iOS 26 target (adjust the runner image if not), and keep `ARCHITECTURE.md` updated as schemas change.
+- Expanded `RELEASE_CHECKLIST.md` with practical TestFlight preparation, CI setup, and manual owner steps.
+- Updated `CI_WORKFLOW.md` to prefer the `macos-26` runner while the project targets the newest iOS simulator tooling.
+- Added reference links for Apple TestFlight, Apple app privacy details, Apple app distribution, and GitHub-hosted runners.
+- Still to do: fill the privacy policy publication fields and get legal review, add the CI workflow file via GitHub's web editor or a workflow-scope credential, verify the first CI run, and keep `ARCHITECTURE.md` updated as schemas change.
 - Deferred for later: `CHANGELOG.md`, `firestore.indexes.json` wired into `firebase.json`, `LICENSE`, and small `.gitignore` additions.
 
 **Done when:** the privacy policy is legally reviewed and published, CI builds pass on GitHub, and the architecture doc stays current.
