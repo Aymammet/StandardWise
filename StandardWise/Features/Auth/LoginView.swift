@@ -42,7 +42,6 @@ struct LoginView: View {
             || session.isRegistering
             || session.isSigningInWithApple
             || session.isSendingPasswordReset
-            || session.isSendingEmailVerification
     }
 
     var body: some View {
@@ -107,7 +106,6 @@ struct LoginView: View {
             emailField
             passwordField
             authMessages
-            verificationResendButton
 
             Button {
                 submitSignIn()
@@ -350,29 +348,6 @@ struct LoginView: View {
         }
     }
 
-    private var verificationResendButton: some View {
-        Group {
-            if session.loginErrorMessage == "Please check your email and confirm your email by using activation link sent to you." {
-                Button {
-                    Task {
-                        await session.resendEmailVerification(email: email, password: password)
-                    }
-                } label: {
-                    if session.isSendingEmailVerification {
-                        ProgressView()
-                    } else {
-                        Label("Resend activation email", systemImage: "paperplane")
-                    }
-                }
-                .font(.footnote.weight(.semibold))
-                .buttonStyle(.bordered)
-                .tint(StandardWiseTheme.accent)
-                .disabled(!canSubmit || isBusy)
-                .accessibilityHint("Sends another email confirmation link to this account.")
-            }
-        }
-    }
-
     private var appleSignInSection: some View {
         VStack(spacing: 10) {
             HStack(spacing: 10) {
@@ -543,12 +518,6 @@ struct LoginView: View {
                 email: email,
                 password: password
             )
-
-            if session.loginErrorMessage == nil, session.authInfoMessage != nil {
-                authScreen = .signIn
-                password = ""
-                focusedField = .email
-            }
         }
     }
 

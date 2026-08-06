@@ -50,8 +50,8 @@ App Store release.
 
 - Run the `StandardWise Local` build.
 - Run the `StandardWise Staging` build.
-- Test registration, email activation, login, forgot password, and Sign in with
-  Apple on a signed simulator or physical device.
+- Test registration, duplicate-email handling, login, forgot password, and Sign
+  in with Apple on a signed simulator or physical device.
 - Test regular-user question generation and Today summary.
 - Test admin subject, standard, question, feedback, users, and analytics flows.
 - Test question images from a physical device photo library.

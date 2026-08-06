@@ -13,7 +13,7 @@ when unset.
 | Scheme | Mode | Auth | Data |
 | --- | --- | --- | --- |
 | StandardWise Local | `local` | Sample accounts (`admin@standardwise.app` / `admin123`, `student@standardwise.app` / `student123`) | On-device only |
-| StandardWise Staging | `staging` | Firebase Authentication (email/password, email verification, Sign in with Apple) | On-device first, synced with Firestore |
+| StandardWise Staging | `staging` | Firebase Authentication (email/password, Sign in with Apple) | On-device first, synced with Firestore |
 
 ## Source layout
 
@@ -75,17 +75,15 @@ Every store follows the same rules:
 ## Authentication
 
 - `LocalAuthService.authenticate` branches on mode: local checks sample
-  credentials; staging signs in with Firebase Auth, verifies the user's email
-  for regular email/password accounts, then loads the user's Firestore profile
-  via `FirebaseUserService.userProfile` (creating one on first sign-in, with a
-  deterministic UUID derived from the Firebase UID as a fallback).
+  credentials; staging signs in with Firebase Auth, then loads the user's
+  Firestore profile via `FirebaseUserService.userProfile` (creating one on
+  first sign-in, with a deterministic UUID derived from the Firebase UID as a
+  fallback).
 - Registration collects first name, last name, email, and password. Staging
   creates the Firebase Auth account, writes the matching Firestore user
-  profile, sends the email activation link, signs the user back out, and
-  returns them to the sign-in screen with a "check your email" message.
-- Unverified regular users are blocked at sign-in until the activation link is
-  used. The sign-in screen can resend the activation email after the user
-  re-enters the email and password.
+  profile, and signs the user in immediately.
+- Email activation is temporarily disabled so existing unverified Firebase
+  users can sign in while the project is in staging.
 - Password reset uses Firebase's reset-email flow in staging and shows
   guidance to check Inbox, Spam, Junk, or Promotions.
 - Sign in with Apple uses Apple's native sign-in button, secure nonce

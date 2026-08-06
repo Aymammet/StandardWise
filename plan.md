@@ -542,7 +542,7 @@ Progress:
 - Added Sign in with Apple to the sign-in and create-account screens using Apple's native button, secure nonce generation, Firebase's Apple OAuth credential flow, regular-user profile creation/fallback, and the required Apple sign-in entitlement.
 - Verified the Local and Staging schemes build cleanly after adding Sign in with Apple.
 - Manual setup still needed: enable Sign in with Apple for the app identifier in Apple Developer/Xcode signing, enable Apple as a Firebase Authentication provider, and test on a signed simulator or physical device with an Apple ID.
-- Manual Staging testing passed: login/register, email activation, forgot password, regular-user practice flow, Today summary, question images, admin dashboard/users/standards/questions/feedback/analytics, and Light/Dark Mode were tested successfully.
+- Manual Staging testing passed: login/register, forgot password, regular-user practice flow, Today summary, question images, admin dashboard/users/standards/questions/feedback/analytics, and Light/Dark Mode were tested successfully. Email activation was later disabled temporarily during staging.
 
 **Done when:** the student flow feels like a friendly practice game (pick, practice in sessions, see progress) rather than a form, signing in feels effortless and welcoming, and the app has one consistent visual identity in light and dark mode.
 
@@ -551,11 +551,11 @@ Progress:
 - Added `PRIVACY.md`: a draft privacy policy covering collected data, Firebase storage, children's privacy, retention, and deletion. Contains bracketed placeholders and must be reviewed by a lawyer for COPPA/FERPA before publication.
 - Added `ARCHITECTURE.md`: app modes and schemes, source layout, the store pattern and sync rules, the Firestore schema for every collection, a security-rules summary with known limitations, and the design system.
 - Drafted a GitHub Actions CI workflow that builds both `StandardWise Local` and `StandardWise Staging` schemes on every push and pull request. Removed it from the commit because Xcode's stored GitHub credential lacks the `workflow` scope needed to push a `.github/workflows/` file, which blocked the push. The workflow content is saved locally; add it through the GitHub web editor, or re-authenticate the GitHub account in Xcode with a token that has the `workflow` scope and commit it from there.
-- Updated `ARCHITECTURE.md` to reflect the current auth flow, email activation, Apple sign-in support, navy/gold branding, question images, and open-ended Generate Question practice sessions.
+- Updated `ARCHITECTURE.md` to reflect the current auth flow, Apple sign-in support, navy/gold branding, question images, and open-ended Generate Question practice sessions.
 - Updated `PRIVACY.md` so the collected-data list matches the current app: first/last name, email verification, sign-in provider, practice attempts, feedback, admin-created question content, and optional admin-uploaded question images. Publication fields and legal review are still required.
 - Added `RELEASE_CHECKLIST.md` for Firebase, Apple Developer, compliance, TestFlight, App Store, and final manual-testing steps.
 - Added `CI_WORKFLOW.md` with the GitHub Actions workflow content to add later through GitHub once workflow-scope permissions are available.
-- Updated `README.md` so it describes the current Generate Question flow, Today summary, email activation, Apple sign-in support, question images, navy/gold brand, and release docs.
+- Updated `README.md` so it describes the current Generate Question flow, Today summary, registration/login behavior, Apple sign-in support, question images, navy/gold brand, and release docs.
 - Expanded `RELEASE_CHECKLIST.md` with practical TestFlight preparation, CI setup, and manual owner steps.
 - Updated `CI_WORKFLOW.md` to prefer the `macos-26` runner while the project targets the newest iOS simulator tooling.
 - Added reference links for Apple TestFlight, Apple app privacy details, Apple app distribution, and GitHub-hosted runners.
@@ -731,6 +731,7 @@ Progress:
 - Password reset and activation messages now mention checking Inbox, Spam, Junk, or Promotions.
 - Verified both `StandardWise Local` and `StandardWise Staging` build successfully after the email activation changes.
 - Manual Staging testing passed: registration sends the activation email, redirects back to Sign in with the activation notice, login is blocked before activation, resend activation email works, the activation link verifies the account, and login succeeds after activation.
+- Temporarily disabled on August 5, 2026: registration no longer sends an activation email, new users enter the app immediately after registering, and existing unverified Firebase users can sign in again during staging.
 
 **Done when:** new self-registered users cannot use the app until their email is confirmed, blocked users see a clear activation message, and confirmed users can start using StandardWise after clicking the email activation link.
 
@@ -754,6 +755,7 @@ Progress:
 - Added an Auth Email Deliverability section to `QA_CHECKLIST.md` for Gmail, iCloud, Outlook/Hotmail, school email, Firebase email templates, and custom sender domain review.
 - Reviewed Firebase's current email customization options: Firebase Authentication templates support sender/template customization and a custom sender domain can be configured and verified with DNS records.
 - Manual testing passed. Auth email guidance, resend flow, and deliverability notes are working as expected.
+- Temporarily updated on August 5, 2026: activation-email testing is removed from the active checklist because email verification is disabled during staging. Password reset deliverability remains active.
 
 **Done when:** users are clearly told where to look for auth emails, can request another email when needed, and production email settings are reviewed to reduce spam-folder delivery.
 

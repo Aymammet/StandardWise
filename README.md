@@ -12,7 +12,7 @@ See `ARCHITECTURE.md` for how the app, stores, and Firestore schema fit together
 
 ### Student experience
 
-- Sign in / create account flow with first and last name fields, email activation, resend activation email, forgot password, Sign in with Apple support, friendly error messages, and a password strength check.
+- Sign in / create account flow with first and last name fields, duplicate-email handling, forgot password, Sign in with Apple support, friendly error messages, and a password strength check.
 - Practice home screen with a greeting, tappable subject cards, grade chips, a standard picker showing mastery percent, and a Today summary grouped by practiced standard.
 - Generated-question practice sessions that continue until the student ends the session, with animated transitions and haptics.
 - Multiple-choice and typed-answer questions with instant correct/incorrect feedback and explanations.
@@ -149,7 +149,7 @@ For staging users, each Firebase Auth user should also have a matching Firestore
 3. Select an iPhone simulator.
 4. Build and run.
 
-Use `StandardWise Local` when testing app behavior without Firebase. Use `StandardWise Staging` when testing Firebase login, email activation, Firestore sync, and production-like auth behavior.
+Use `StandardWise Local` when testing app behavior without Firebase. Use `StandardWise Staging` when testing Firebase login, registration, Firestore sync, and production-like auth behavior.
 
 ## Project Structure
 
